@@ -1,0 +1,382 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Test Runner · ChargeFlow</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+<style>
+.toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:12px 14px;margin-bottom:16px}
+.toolbar .sep{width:1px;height:28px;background:var(--line)}
+.wk{display:grid;grid-template-columns:290px minmax(0,1fr) 360px;gap:16px;align-items:start}
+.cases{padding:8px}
+.grp{font:500 10px var(--mono);letter-spacing:.8px;color:var(--muted);text-transform:uppercase;padding:10px 8px 4px}
+.case{width:100%;background:transparent;border:1px solid transparent;border-radius:11px;display:grid;grid-template-columns:auto 1fr auto;gap:9px;text-align:left;padding:9px;margin-bottom:2px;align-items:center}
+.case:hover{background:#f2fbfa}.case.on{border-color:#8fded8;background:#eefffc}
+.case .id{font:500 10px var(--mono);background:#e8eef0;color:#5d7380;border-radius:6px;padding:3px 5px}
+.case.on .id{background:var(--aqua);color:#063844}
+.case b{font-size:12px;display:block}.case small{font-size:10px;color:var(--muted)}
+.dot{width:10px;height:10px;border-radius:50%;background:#dbe5e7}
+.dot.pass{background:var(--green)}.dot.fail{background:var(--red)}.dot.warn{background:var(--amber)}.dot.run{background:var(--aqua);box-shadow:0 0 0 4px #35d4ce33;animation:blink 1s infinite}
+.center{display:grid;grid-template-columns:330px minmax(0,1fr);gap:0}
+.center .phone-col{padding:16px 10px;border-right:1px solid var(--line2);background:linear-gradient(160deg,#f1fbfa,#fff 60%)}
+.why{padding:12px 16px;border-bottom:1px solid var(--line2);font-size:12px;line-height:1.6;color:#2c4655}
+.why b{color:var(--ink)}
+.script{max-height:395px;overflow:auto;padding:6px 0}
+.sl{display:grid;grid-template-columns:30px 1fr 22px;gap:6px;padding:5px 12px;font:11.5px/1.55 var(--mono);border-left:3px solid transparent}
+.sl .n{color:#9aabb1;text-align:right}
+.sl .code{word-break:break-all;font-size:11px}
+.sl .s{text-align:center}
+.sl.cur{background:#e9fbfa;border-left-color:var(--aqua)}
+.sl.pass .s:after{content:'✓';color:var(--green);font-weight:700}
+.sl.fail{background:#fff0ee}.sl.fail .s:after{content:'✗';color:var(--red);font-weight:700}
+.sl.skip{opacity:.45}
+.mtable{width:100%;border-collapse:collapse;font-size:11px}
+.mtable td{padding:5px 8px;border-bottom:1px solid var(--line2)}
+.manual th{font:500 10px var(--mono);text-transform:uppercase;color:var(--muted);text-align:left;padding:6px 8px;border-bottom:1px solid var(--line)}
+.stagecards{display:flex;flex-direction:column;gap:12px}
+.stg .head{align-items:center}
+.stg .num{width:26px;height:26px;border-radius:8px;display:grid;place-items:center;background:#e4f7f5;color:#168488;font-weight:800;font-size:12px;margin-right:9px}
+.stg.active{border-color:var(--aqua);box-shadow:0 0 0 3px #d8faf7}
+.jlist{max-height:210px;overflow:auto;font:11px/1.5 var(--mono)}
+.jrow{display:grid;grid-template-columns:18px 1fr;gap:6px;padding:5px 0;border-bottom:1px dashed var(--line2)}
+.jrow .st:after{content:'·';color:#9aabb1}.jrow.pass .st:after{content:'✓';color:var(--green)}.jrow.fail .st:after{content:'✗';color:var(--red)}
+.jrow.new .nm:after{content:' NEW';color:#0b7285;font-size:9px}
+.jrow small{display:block;color:#b33a30}
+.mrow{display:grid;grid-template-columns:1fr auto;gap:8px;padding:6px 0;border-bottom:1px dashed #1f4d66;font:10.5px/1.5 var(--mono)}
+.mrow .k{color:#7eea9f}.mrow .s{color:#ffcf6b}.mrow .nc{color:#ff8e85}
+.mrow small{color:#8fb3c0;display:block}
+.pitbox{max-height:230px;overflow:auto}
+.res{width:100%;border-collapse:collapse;font-size:12px}
+.res th{font:500 10px var(--mono);text-transform:uppercase;letter-spacing:.5px;color:var(--muted);text-align:left;padding:9px 12px;border-bottom:1px solid var(--line)}
+.res td{padding:9px 12px;border-bottom:1px solid var(--line2)}
+.gate-hint{display:none;font:500 11px var(--mono);color:#0b7285;background:#dff7fb;border-radius:8px;padding:7px 10px}
+.gate-hint.on{display:inline-block;animation:blink 1.2s infinite}
+@media(max-width:1250px){.wk{grid-template-columns:260px minmax(0,1fr)}.stagecards{grid-column:1/-1;display:grid;grid-template-columns:repeat(3,1fr)}}
+@media(max-width:900px){.wk,.center,.stagecards{grid-template-columns:1fr}.center .phone-col{border-right:0}}
+</style>
+</head>
+<body>
+<main class="page">
+  <section class="hero">
+    <div class="eyebrow">Test Runner · 12 test cases · Katalon → JUnit 5 → PIT</div>
+    <h1>Run the full regression suite, step by step.</h1>
+    <p>Each test case drives the real ChargeFlow app below the way Katalon WebUI does: it clicks, types and checks the screen. It then runs the matching JUnit 5 tests against the business rules and lets the mutation engine attack that rule. Slow it down, step through it, or inject a defect and watch the right test fail.</p>
+  </section>
+
+  <div class="panel toolbar">
+    <button class="btn primary" id="runOne">▶ Run selected</button>
+    <button class="btn dark" id="runAll">▶▶ Run all 12</button>
+    <button class="btn" id="pause">❚❚ Pause</button>
+    <button class="btn danger" id="stop" disabled>■ Stop</button>
+    <span class="sep"></span>
+    <div class="ctrl" id="speed"></div>
+    <span class="sep"></span>
+    <label class="toggle"><input type="checkbox" id="stepMode"> Step-by-step</label>
+    <button class="btn sm" id="next" disabled>Next step ↵</button>
+    <span class="gate-hint" id="gateHint">Waiting — press Next step</span>
+    <span class="sep"></span>
+    <div class="ctrl"><label>Inject defect</label><select class="sel" id="defect"></select></div>
+  </div>
+
+  <section class="wk">
+    <aside class="panel">
+      <div class="head"><div><h2>Test suite</h2><p>Regression · Chrome · staging profile</p></div><span class="tag" id="countTag">0 / 12</span></div>
+      <div class="cases" id="cases"></div>
+    </aside>
+
+    <section class="panel">
+      <div class="head"><div><h2 id="cTitle">—</h2><p id="cTech">—</p></div><span class="pill idle" id="cBadge">NOT RUN</span></div>
+      <div class="why" id="cWhy"></div>
+      <div class="center">
+        <div class="phone-col"><div class="phone-wrap" id="phone"></div></div>
+        <div>
+          <div class="head" style="border-top:0;flex-wrap:wrap"><div><h3>Katalon test case</h3><p id="cPath">Test Cases/…</p></div>
+            <div class="seg" id="viewSeg"><button class="on" data-v="script">Script</button><button data-v="manual">Manual</button></div></div>
+          <div class="script" id="script"></div>
+        </div>
+      </div>
+      <div class="console" id="log" style="height:190px;border-radius:0 0 var(--r) var(--r)"></div>
+    </section>
+
+    <aside class="stagecards">
+      <section class="panel stg" id="stgK">
+        <div class="head"><div style="display:flex;align-items:center"><span class="num">1</span><div><h3>Katalon WebUI</h3><p>UI automation on the running app</p></div></div><span class="pill idle" id="kState">IDLE</span></div>
+        <div class="body small muted" id="kInfo">Waiting to start.</div>
+      </section>
+      <section class="panel stg" id="stgJ">
+        <div class="head"><div style="display:flex;align-items:center"><span class="num">2</span><div><h3>JUnit 5 · ReservationRulesTest</h3><p>Unit tests for the rule behind this case</p></div></div><span class="pill idle" id="jState">IDLE</span></div>
+        <div class="body"><div class="jlist" id="jList"><div class="empty">No tests run yet</div></div></div>
+      </section>
+      <section class="panel dark stg" id="stgP">
+        <div class="head"><div style="display:flex;align-items:center"><span class="num" style="background:#1d4b63;color:var(--lime)">3</span><div><h3>PIT mutation testing</h3><p id="pRule">Mutates the rule and re-runs the tests</p></div></div><span class="pill idle" id="pState">IDLE</span></div>
+        <div class="body">
+          <div style="display:flex;gap:14px;align-items:center;margin-bottom:10px">
+            <div class="ring" id="pRing"><b id="pPct">–</b></div>
+            <div style="font-size:12px;line-height:1.7;color:#cfe5ea"><div>Before this case: <b id="pBase" style="color:#fff">–</b></div><div>With this case: <b id="pWith" style="color:var(--lime)">–</b></div><div class="small" style="color:#8fb3c0" id="pNote"></div></div>
+          </div>
+          <div class="pitbox" id="pList"></div>
+        </div>
+      </section>
+    </aside>
+  </section>
+
+  <section class="panel" style="margin-top:16px">
+    <div class="head"><div><h2>Execution report</h2><p>Results across all three layers. Download as JUnit XML, the format CI servers read.</p></div>
+      <div class="ctrl"><span id="summary" class="small muted"></span><button class="btn sm" id="xml">⬇ JUnit XML</button></div></div>
+    <div class="scroll"><table class="res"><thead><tr><th>Case</th><th>Title</th><th>Technique</th><th>Katalon UI</th><th>JUnit 5</th><th>PIT (rule)</th><th>Time</th></tr></thead><tbody id="resBody"></tbody></table></div>
+  </section>
+
+  <div class="footer"><span>CHARGEFLOW · TEST RUNNER</span><span>UI steps run against an in-browser mock app; JUnit assertions and mutants run for real against a JS port of the rules.</span></div>
+</main>
+
+<script src="assets/rules.js"></script>
+<script src="assets/phone.js"></script>
+<script src="assets/cases.js"></script>
+<script>
+(function () {
+  CF.nav('runner.html');
+  const $ = s => document.querySelector(s);
+  let defect = 'none', current = CF.CASES[0], busy = false, abort = false, view = 'script';
+  const results = {};
+  const phone = new CF.Phone($('#phone'), { rules: () => CF.buildRules(defect) });
+
+  // ---------- controls
+  CF.mountSpeed($('#speed'));
+  $('#defect').innerHTML = Object.entries(CF.DEFECTS).map(([k, d]) => `<option value="${k}">${d.label}</option>`).join('');
+  $('#defect').onchange = e => { defect = e.target.value; phone.render(); log('wn', `Build switched: ${CF.DEFECTS[defect].label}`); };
+  $('#stepMode').onchange = e => { CF.stepMode = e.target.checked; $('#next').disabled = !e.target.checked; if (!e.target.checked) CF.nextStep(); };
+  $('#next').onclick = () => CF.nextStep();
+  document.addEventListener('keydown', e => { if (e.key === 'Enter' && CF.stepMode && e.target.tagName !== 'INPUT') CF.nextStep(); });
+  document.addEventListener('cf-gate', e => $('#gateHint').classList.toggle('on', e.detail));
+  $('#pause').onclick = () => { CF.paused = !CF.paused; $('#pause').textContent = CF.paused ? '▶ Resume' : '❚❚ Pause'; };
+  $('#stop').onclick = () => { abort = true; CF.paused = false; $('#pause').textContent = '❚❚ Pause'; CF.nextStep(); };
+  $('#viewSeg').querySelectorAll('button').forEach(b => b.onclick = () => { view = b.dataset.v; $('#viewSeg').querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b)); renderScript(); });
+
+  // ---------- case list
+  function renderCases() {
+    let h = '', g = '';
+    for (const c of CF.CASES) {
+      if (c.group !== g) { g = c.group; h += `<div class="grp">${g}</div>`; }
+      const r = results[c.id];
+      const dot = r ? (r.running ? 'run' : r.overall) : '';
+      h += `<button class="case ${c === current ? 'on' : ''}" data-id="${c.id}"><span class="id">${c.id}</span><span><b>${c.title}</b><small>${c.tech}</small></span><span class="dot ${dot}"></span></button>`;
+    }
+    $('#cases').innerHTML = h;
+    $('#cases').querySelectorAll('.case').forEach(b => b.onclick = () => { if (!busy) select(CF.CASES.find(c => c.id === b.dataset.id)); });
+    const done = Object.values(results).filter(r => !r.running).length;
+    $('#countTag').textContent = done + ' / 12';
+  }
+  function select(c) {
+    current = c;
+    $('#cTitle').textContent = c.id + ' — ' + c.title;
+    $('#cTech').textContent = c.tech + ' · rule under test: ' + c.pit + '()';
+    $('#cWhy').innerHTML = '<b>Why this test matters:</b> ' + c.why;
+    $('#cPath').textContent = `Test Cases/${c.group}/${c.id}_${c.title.replace(/[^A-Za-z0-9]+/g, '_')}`;
+    const r = results[c.id];
+    badge($('#cBadge'), r && !r.running ? r.overall : 'idle', r && !r.running ? r.overall.toUpperCase() : 'NOT RUN');
+    renderScript();
+    renderCases();
+  }
+  function renderScript(states) {
+    states = states || [];
+    const c = current;
+    if (view === 'script') {
+      $('#script').innerHTML = c.steps.map((s, i) => `<div class="sl ${states[i] || ''}" data-i="${i}"><span class="n">${i + 1}</span><span class="code light" style="padding:0;background:none;border:0;white-space:pre-wrap">${CF.highlight(CF.stepToGroovy(s))}</span><span class="s"></span></div>`).join('');
+    } else {
+      $('#script').innerHTML = `<table class="mtable manual"><thead><tr><th>#</th><th>Action</th><th>Object</th><th>Input</th><th></th></tr></thead><tbody>` +
+        c.steps.map((s, i) => `<tr class="sl ${states[i] || ''}" data-i="${i}" style="display:table-row"><td class="n">${i + 1}</td><td><b>${CF.stepAction(s)}</b></td><td class="mono" style="font-size:10.5px">${s.o ? CF.objPath(s.o) : (s.k === 'api' ? 'API/PUT_station_load' : '')}</td><td class="mono">${s.v !== undefined ? CF.esc(s.v) : ''}</td><td class="s"></td></tr>`).join('') + '</tbody></table>';
+    }
+  }
+  let lineStates = [];
+  function markLine(i, st) {
+    lineStates[i] = st;
+    const el = $('#script').querySelector(`[data-i="${i}"]`);
+    if (!el) return;
+    el.classList.remove('cur', 'pass', 'fail', 'skip');
+    if (st) el.classList.add(st);
+    if (st === 'cur') el.scrollIntoView({ block: 'nearest' });
+  }
+
+  // ---------- log
+  function log(cls, msg) {
+    const d = document.createElement('div');
+    d.className = 'ln';
+    d.innerHTML = `<span class="t">${CF.ts()}</span> <span class="${cls}">${CF.esc(msg)}</span>`;
+    $('#log').appendChild(d);
+    $('#log').scrollTop = 1e9;
+  }
+  function badge(el, st, text) { el.className = 'pill ' + st; el.textContent = text; }
+  function stage(id) { ['#stgK', '#stgJ', '#stgP'].forEach(s => $(s).classList.toggle('active', s === id)); }
+
+  // ---------- run one case
+  async function runCase(c) {
+    select(c);
+    const t0 = performance.now();
+    const r = results[c.id] = { running: true };
+    renderCases();
+    lineStates = []; renderScript();
+    $('#log').innerHTML = '';
+    badge($('#cBadge'), 'run', 'RUNNING');
+    ['#kState', '#jState', '#pState'].forEach(s => badge($(s), 'idle', 'WAITING'));
+    $('#jList').innerHTML = '<div class="empty">Waiting for UI stage</div>';
+    $('#pList').innerHTML = ''; $('#pBase').textContent = '–'; $('#pWith').textContent = '–'; $('#pPct').textContent = '–'; $('#pNote').textContent = '';
+    $('#pRing').style.setProperty('--p', 0);
+
+    // ---- stage 1: Katalon
+    stage('#stgK'); badge($('#kState'), 'run', 'RUNNING');
+    $('#kInfo').innerHTML = `Executing <b>${c.steps.length}</b> steps with <span class="mono">FailureHandling.STOP_ON_FAILURE</span>`;
+    log('i', `START Test Cases/${c.group}/${c.id}  (profile: staging, browser: Chrome)`);
+    if (defect !== 'none') log('wn', `Build under test contains defect: ${CF.DEFECTS[defect].label}`);
+    const drv = new CF.Driver(phone, { log });
+    let kOk = true;
+    for (let i = 0; i < c.steps.length; i++) {
+      await CF.gate();
+      if (abort) break;
+      const s = c.steps[i];
+      markLine(i, 'cur');
+      log('t', `[${i + 1}] Start action : ${CF.stepAction(s)}`);
+      try {
+        const msg = await drv.exec(s);
+        log('ok', `    ✓ ${msg}`);
+        markLine(i, 'pass');
+      } catch (e) {
+        kOk = false;
+        markLine(i, 'fail');
+        log('er', `    ✗ FAILED: ${e.message}`);
+        log('er', `    Screenshot saved → Reports/${c.id}/failure_${i + 1}.png`);
+        for (let j = i + 1; j < c.steps.length; j++) markLine(j, 'skip');
+        break;
+      }
+      await CF.sleep(250);
+    }
+    CF.hideCursor();
+    if (abort) return finishAbort(c, r);
+    r.katalon = kOk ? 'pass' : 'fail';
+    badge($('#kState'), r.katalon, kOk ? 'PASSED' : 'FAILED');
+    $('#kInfo').innerHTML = kOk ? `All ${c.steps.length} steps passed.` : `Failed at step ${lineStates.indexOf('fail') + 1}. Katalon stops the test case and saves a screenshot.`;
+    log(kOk ? 'ok' : 'er', `END Test Cases/${c.group}/${c.id} — ${kOk ? 'PASSED' : 'FAILED'}`);
+    await CF.sleep(500);
+
+    // ---- stage 2: JUnit 5
+    await CF.gate(); if (abort) return finishAbort(c, r);
+    stage('#stgJ'); badge($('#jState'), 'run', 'RUNNING');
+    const rules = CF.buildRules(defect);
+    const base = CF.DEFAULT_TESTS.filter(x => x.rule === c.pit || c.junit.some(j => j.rule === x.rule));
+    const tests = [...base, ...c.junit];
+    log('i', `$ ./gradlew test --tests "com.chargeflow.ReservationRulesTest"`);
+    $('#jList').innerHTML = tests.map((x, i) => `<div class="jrow ${c.junit.includes(x) ? 'new' : ''}" data-j="${i}"><span class="st"></span><span class="nm">${CF.esc(x.name)}()<small></small></span></div>`).join('');
+    let jOk = true;
+    for (let i = 0; i < tests.length; i++) {
+      if (abort) return finishAbort(c, r);
+      await CF.sleep(420);
+      const x = tests[i], res = CF.runTest(rules[x.rule], x);
+      const row = $('#jList').querySelector(`[data-j="${i}"]`);
+      row.classList.add(res.pass ? 'pass' : 'fail');
+      row.scrollIntoView({ block: 'nearest' });
+      if (!res.pass) { jOk = false; row.querySelector('small').textContent = `expected ${CF.fmt(x.expect)} but was ${CF.fmt(res.got)}`; }
+      log(res.pass ? 'ok' : 'er', `ReservationRulesTest > ${x.name}() ${res.pass ? 'PASSED' : 'FAILED'}`);
+    }
+    r.junit = jOk ? 'pass' : 'fail';
+    r.junitCount = tests.length;
+    badge($('#jState'), r.junit, jOk ? `${tests.length} PASSED` : 'FAILED');
+    await CF.sleep(500);
+
+    // ---- stage 3: PIT
+    await CF.gate(); if (abort) return finishAbort(c, r);
+    stage('#stgP');
+    $('#pRule').textContent = `Mutating ${c.pit}() · DEFAULTS mutators`;
+    if (!jOk) {
+      badge($('#pState'), 'skip', 'SKIPPED');
+      $('#pNote').textContent = 'PIT needs a green test suite on the unmutated code, so it did not run.';
+      log('wn', 'PIT skipped: tests fail on the unmutated code (PIT would abort with "tests did not pass without mutation").');
+      r.pit = 'skip';
+    } else {
+      badge($('#pState'), 'run', 'RUNNING');
+      log('i', `$ ./gradlew pitest -PtargetClasses=com.chargeflow.rules.${c.pit}`);
+      const rule = { ...CF.rule(c.pit), src: CF.sourceWithDefect(c.pit, defect) };
+      const muts = CF.generateMutants(rule);
+      const baseT = CF.DEFAULT_TESTS, withT = [...CF.DEFAULT_TESTS, ...c.junit];
+      const bRes = [], wRes = [];
+      $('#pList').innerHTML = '';
+      for (const m of muts) {
+        if (abort) return finishAbort(c, r);
+        await CF.sleep(330);
+        const b = CF.runMutant(m, baseT), w = CF.runMutant(m, withT);
+        bRes.push(b); wRes.push(w);
+        const changed = b.status !== w.status;
+        const cls = s => s === 'KILLED' ? 'k' : s === 'SURVIVED' ? 's' : 'nc';
+        const d = document.createElement('div');
+        d.className = 'mrow';
+        d.innerHTML = `<span>L${m.line} ${m.op}<small>${CF.esc(m.desc)}${w.killedBy ? ' · killed by ' + CF.esc(w.killedBy.name) : ''}</small></span><span class="${cls(w.status)}">${changed ? `<span class="${cls(b.status)}" style="text-decoration:line-through;opacity:.7">${b.status}</span> → ` : ''}${w.status}</span>`;
+        $('#pList').appendChild(d); $('#pList').scrollTop = 1e9;
+        const sc = CF.mutationScore(wRes);
+        $('#pRing').style.setProperty('--p', sc.pct); $('#pPct').textContent = sc.pct + '%';
+      }
+      const bs = CF.mutationScore(bRes), ws = CF.mutationScore(wRes);
+      $('#pBase').textContent = `${bs.killed}/${bs.total} (${bs.pct}%)`;
+      $('#pWith').textContent = `${ws.killed}/${ws.total} (${ws.pct}%)`;
+      $('#pNote').textContent = ws.killed > bs.killed ? `This case's new test killed ${ws.killed - bs.killed} more mutant(s).` : ws.pct === 100 ? 'Every mutant is killed.' : 'Survivors left: see the PIT Lab to find killing tests.';
+      log('ok', `>> Generated ${muts.length} mutations Killed ${ws.killed} (${ws.pct}%)`);
+      r.pit = ws.pct === 100 ? 'pass' : 'warn';
+      r.pitText = `${ws.killed}/${ws.total} · ${ws.pct}%`;
+      badge($('#pState'), r.pit, ws.pct + '% KILLED');
+    }
+    stage(null);
+    r.running = false;
+    r.ms = performance.now() - t0;
+    r.overall = r.katalon === 'fail' || r.junit === 'fail' ? 'fail' : r.pit === 'warn' ? 'warn' : 'pass';
+    badge($('#cBadge'), r.overall, { pass: 'PASSED', fail: 'FAILED', warn: 'PASSED · PIT SURVIVORS' }[r.overall]);
+    renderCases(); renderResults();
+  }
+  function finishAbort(c, r) {
+    CF.hideCursor(); stage(null);
+    delete results[c.id];
+    badge($('#cBadge'), 'idle', 'STOPPED');
+    log('wn', 'Execution stopped by user.');
+    renderCases(); renderResults();
+  }
+
+  async function guard(fn) {
+    if (busy) return; busy = true; abort = false;
+    ['#runOne', '#runAll'].forEach(s => $(s).disabled = true); $('#stop').disabled = false; $('#defect').disabled = true;
+    try { await fn(); } finally {
+      busy = false; ['#runOne', '#runAll'].forEach(s => $(s).disabled = false); $('#stop').disabled = true; $('#defect').disabled = false;
+      $('#gateHint').classList.remove('on');
+    }
+  }
+  $('#runOne').onclick = () => guard(() => runCase(current));
+  $('#runAll').onclick = () => guard(async () => {
+    for (const k in results) delete results[k];
+    renderResults();
+    for (const c of CF.CASES) { if (abort) break; await runCase(c); await CF.sleep(700); }
+  });
+
+  // ---------- results
+  function renderResults() {
+    const rows = CF.CASES.filter(c => results[c.id] && !results[c.id].running);
+    const p = s => `<span class="pill ${s}">${{ pass: 'PASS', fail: 'FAIL', warn: 'SURVIVORS', skip: 'SKIPPED' }[s] || '–'}</span>`;
+    $('#resBody').innerHTML = rows.length ? rows.map(c => { const r = results[c.id]; return `<tr><td class="mono">${c.id}</td><td><b>${c.title}</b></td><td class="muted">${c.tech}</td><td>${p(r.katalon)}</td><td>${p(r.junit)} <span class="muted small">${r.junitCount || ''} tests</span></td><td>${p(r.pit)} <span class="muted small">${r.pitText || ''}</span></td><td class="mono small">${(r.ms / 1000).toFixed(1)}s</td></tr>`; }).join('')
+      : '<tr><td colspan="7" class="empty">Run a test case to fill the report.</td></tr>';
+    const f = rows.filter(c => results[c.id].overall === 'fail').length;
+    $('#summary').textContent = rows.length ? `${rows.length} run · ${rows.length - f} passed · ${f} failed` : '';
+  }
+  $('#xml').onclick = () => {
+    const rows = CF.CASES.filter(c => results[c.id] && !results[c.id].running);
+    const fails = rows.filter(c => results[c.id].katalon === 'fail').length;
+    const x = `<?xml version="1.0" encoding="UTF-8"?>\n<testsuites name="ChargeFlow Regression">\n  <testsuite name="Test Suites/Regression" tests="${rows.length}" failures="${fails}" time="${(rows.reduce((a, c) => a + results[c.id].ms, 0) / 1000).toFixed(2)}">\n` +
+      rows.map(c => { const r = results[c.id]; return `    <testcase classname="Test Cases.${c.group}" name="${c.id} ${CF.esc(c.title)}" time="${(r.ms / 1000).toFixed(2)}">${r.katalon === 'fail' ? `<failure message="Katalon step failed"/>` : ''}</testcase>`; }).join('\n') +
+      `\n  </testsuite>\n</testsuites>\n`;
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([x], { type: 'application/xml' }));
+    a.download = 'chargeflow-regression-junit.xml'; a.click();
+  };
+
+  select(current); renderResults();
+  log('i', 'Runner ready. Pick a test case and press "Run selected", or run all 12.');
+  window.__runner = { runCase, results };
+})();
+</script>
+</body>
+</html>

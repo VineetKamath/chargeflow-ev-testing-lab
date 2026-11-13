@@ -1,0 +1,427 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PIT Mutation Lab · ChargeFlow</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+<style>
+.how{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
+.how .panel{padding:14px 16px}
+.how b{display:block;font-size:14px;margin:6px 0 4px}
+.how p{margin:0;font-size:12px;color:var(--muted);line-height:1.55}
+.how .n{font:500 10px var(--mono);color:var(--teal)}
+.toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:12px 14px;margin-bottom:16px}
+.toolbar .sep{width:1px;height:28px;background:var(--line)}
+.lab{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr) 330px;gap:16px;align-items:start}
+.tabs{display:flex;gap:4px;flex-wrap:wrap;padding:10px 12px;border-bottom:1px solid var(--line2)}
+.tabs button{border:1px solid var(--line);background:#fff;border-radius:8px;padding:5px 9px;font:500 11px var(--mono)}
+.tabs button.on{background:var(--navy);color:#fff;border-color:var(--navy)}
+.tabs button .c{margin-left:5px;border-radius:9px;padding:0 5px;font-size:10px}
+.tabs button .c.ok{background:var(--green-bg);color:#187842}.tabs button .c.bad{background:var(--red-bg);color:#b33a30}
+.src{font:13px/1.9 var(--mono);padding:10px 0;background:#fbfdfd}
+.src .ln{display:grid;grid-template-columns:34px 1fr 84px;gap:8px;padding:0 12px;border-left:3px solid transparent}
+.src .ln .no{color:#a3b3b8;text-align:right}
+.src .ln.cur{background:#fff6dc;border-left-color:var(--amber)}
+.src .ln.sel{background:#eaf7f6}
+.src .marks{display:flex;gap:3px;align-items:center;flex-wrap:wrap}
+.mk{width:9px;height:9px;border-radius:3px;background:#cfdadd;cursor:pointer}
+.mk.KILLED{background:var(--green)}.mk.SURVIVED{background:var(--red)}.mk.NO_COVERAGE{background:var(--amber)}.mk.run{background:var(--aqua);animation:blink .6s infinite}
+.desc{padding:10px 14px;font-size:12px;color:var(--muted);border-bottom:1px solid var(--line2)}
+.now{padding:12px 14px;border-top:1px solid var(--line2)}
+.diff{font:12px/1.8 var(--mono);border-radius:9px;overflow:hidden;border:1px solid var(--line)}
+.diff div{padding:2px 10px;white-space:pre}
+.diff .del{background:#ffeceb;color:#9b2d25}.diff .add{background:#e6f8ec;color:#1b6b3f}
+.tests{max-height:470px;overflow:auto}
+.trow{display:grid;grid-template-columns:20px 1fr auto;gap:8px;align-items:start;padding:8px 14px;border-bottom:1px solid var(--line2);font-size:12px}
+.trow.off{opacity:.45}
+.trow .nm{font-weight:700}
+.trow .sig{font:11px var(--mono);color:var(--muted);margin-top:2px;word-break:break-all}
+.trow.added{background:#f1fdf6}
+.trow .x{border:0;background:none;color:#a0b0b5;font-size:16px;line-height:1}
+.trow .x:hover{color:var(--red)}
+.trow .kt{grid-column:2/4;margin-top:6px;font-size:11px}
+.tgrp{font:500 10px var(--mono);letter-spacing:.8px;color:var(--muted);text-transform:uppercase;padding:9px 14px 5px;background:#f8fbfb;border-bottom:1px solid var(--line2)}
+.addf{padding:12px 14px;border-top:1px solid var(--line2);display:grid;gap:8px}
+.addf .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.addf input.inp,.addf select.sel{padding:6px 8px;font-size:12px}
+.addf input.inp{width:86px}
+.bars .b{display:grid;grid-template-columns:150px 1fr 44px;gap:8px;align-items:center;font:10.5px var(--mono);margin:6px 0;color:#cfe5ea}
+.bars .tr{height:8px;border-radius:9px;background:#1f4d66;overflow:hidden}
+.bars .f{height:100%;background:var(--lime)}
+.hist{display:flex;gap:4px;align-items:flex-end;height:46px;margin-top:6px}
+.hist span{flex:1;background:#2f6680;border-radius:3px 3px 0 0;min-height:3px;position:relative}
+.hist span.last{background:var(--lime)}
+.matrix{overflow:auto;padding:12px 14px}
+.matrix table{border-collapse:separate;border-spacing:3px;font:10.5px var(--mono)}
+.matrix th{font-weight:500;color:var(--muted);text-align:left;padding:2px 4px;white-space:nowrap}
+.matrix th.t{writing-mode:vertical-rl;transform:rotate(180deg);height:150px;vertical-align:bottom;max-width:22px}
+.matrix td.c{width:22px;height:22px;border-radius:5px;background:#eef3f4;text-align:center;color:#fff;font-size:11px}
+.matrix td.c.kill{background:var(--green)}.matrix td.c.pass{background:#f4c7c2;color:#9b2d25}.matrix td.c.na{background:#f7f9f9}
+.matrix td.c.run{background:var(--aqua);animation:blink .5s infinite}
+.matrix td.st{padding-left:8px;white-space:nowrap}
+.mtab{width:100%;border-collapse:collapse;font-size:12px}
+.mtab th{font:500 10px var(--mono);text-transform:uppercase;color:var(--muted);text-align:left;padding:9px 12px;border-bottom:1px solid var(--line)}
+.mtab td{padding:8px 12px;border-bottom:1px solid var(--line2);vertical-align:top}
+.mtab tr.sv{background:#fff8f7}
+.sugg{margin-top:8px;display:grid;gap:6px}
+@media(max-width:1300px){.lab{grid-template-columns:1fr 1fr}.lab>.score{grid-column:1/-1}}
+@media(max-width:860px){.lab,.how{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<main class="page">
+  <section class="hero">
+    <div class="eyebrow">PIT Lab · real mutation testing, running in your browser</div>
+    <h1>Test your tests: break the code on purpose.</h1>
+    <p>PIT changes the compiled code in small ways ("mutants"), then re-runs the unit tests against each one. If a test fails, the mutant is <b>killed</b>. If every test still passes, the mutant <b>survived</b>, which means the suite would miss that bug. Everything below runs for real: mutants are generated from the rule source, compiled and executed against the JUnit suite. Add tests and watch the score change.</p>
+  </section>
+
+  <div class="how">
+    <div class="panel"><span class="n">01 · COVERAGE</span><b>Find covering tests</b><p>PIT first measures which tests execute each line, so it only runs the tests that can reach a mutant.</p></div>
+    <div class="panel"><span class="n">02 · MUTATE</span><b>Generate mutants</b><p>Mutators rewrite bytecode: <span class="mono">&lt;</span> to <span class="mono">&lt;=</span>, <span class="mono">+</span> to <span class="mono">−</span>, return values to <span class="mono">0</span>/<span class="mono">""</span>/<span class="mono">true</span>…</p></div>
+    <div class="panel"><span class="n">03 · EXECUTE</span><b>Run tests per mutant</b><p>Each mutant is loaded in a minion JVM. The first failing test kills it and PIT moves on.</p></div>
+    <div class="panel"><span class="n">04 · REPORT</span><b>Mutation score</b><p>Killed ÷ total. CI fails the build if it is below <span class="mono">mutationThreshold</span>.</p></div>
+  </div>
+
+  <div class="panel toolbar">
+    <button class="btn primary" id="run">▶ Run mutation analysis</button>
+    <button class="btn" id="fixAll">✚ Auto-add killing tests</button>
+    <button class="btn" id="reset">↺ Reset test suite</button>
+    <span class="sep"></span>
+    <div class="ctrl"><label>Scope</label><select class="sel" id="scope"><option value="all">All 6 rules</option></select></div>
+    <div class="ctrl"><label>Mutators</label><div class="seg" id="grp"><button class="on" data-g="DEFAULTS">DEFAULTS</button><button data-g="STRONGER">STRONGER</button></div></div>
+    <span class="sep"></span>
+    <div class="ctrl" id="speed"></div>
+    <label class="toggle"><input type="checkbox" id="kotlin"> Show Kotlin JUnit</label>
+  </div>
+
+  <section class="lab">
+    <section class="panel">
+      <div class="head"><div><h2>Code under test</h2><p>ReservationRules · coloured squares are mutants on that line</p></div><span class="tag" id="mCount">–</span></div>
+      <div class="tabs" id="tabs"></div>
+      <div class="desc" id="rdesc"></div>
+      <div class="src" id="src"></div>
+      <div class="now" id="now"><div class="small muted">Run the analysis, or click a square to inspect a mutant.</div></div>
+    </section>
+
+    <section class="panel">
+      <div class="head"><div><h2>JUnit 5 test suite</h2><p>ReservationRulesTest.kt · untick a test to see its effect</p></div><span class="tag" id="tCount">–</span></div>
+      <div class="tests" id="tests"></div>
+      <div class="addf">
+        <b style="font-size:13px">Add a test</b>
+        <div class="row"><select class="sel" id="aRule"></select><span id="aArgs" class="row"></span></div>
+        <div class="row"><label class="small muted">expected</label><input class="inp" id="aExp" style="width:120px" placeholder='e.g. "HIGH"'><button class="btn sm" id="aOracle" title="Fill in what the correct code returns">Use correct value</button><button class="btn sm dark" id="aAdd">Add test</button></div>
+        <div class="small" id="aMsg"></div>
+      </div>
+    </section>
+
+    <aside class="panel dark score">
+      <div class="head"><div><h2>pitest report</h2><p id="scopeLbl">All rules</p></div><span class="pill idle" id="gate">THRESHOLD 80%</span></div>
+      <div class="body">
+        <div style="display:flex;gap:16px;align-items:center">
+          <div class="ring" id="ring"><b id="pct">–</b></div>
+          <div class="stats" style="flex:1;grid-template-columns:1fr 1fr">
+            <div class="stat"><b id="sK" style="color:#7eea9f">0</b><span>Killed</span></div>
+            <div class="stat"><b id="sS" style="color:#ff8e85">0</b><span>Survived</span></div>
+            <div class="stat"><b id="sN" style="color:#ffcf6b">0</b><span>No coverage</span></div>
+            <div class="stat"><b id="sT">0</b><span>Tests run</span></div>
+          </div>
+        </div>
+        <div style="margin-top:16px;font:500 10px var(--mono);color:#9dbcc6;letter-spacing:.6px">KILL RATE BY MUTATOR</div>
+        <div class="bars" id="bars"></div>
+        <div style="margin-top:14px;font:500 10px var(--mono);color:#9dbcc6;letter-spacing:.6px">SCORE HISTORY (EACH RUN)</div>
+        <div class="hist" id="hist"></div>
+        <div class="code" style="margin-top:14px;font-size:10.5px;background:#0a2536">// build.gradle.kts
+pitest {
+  targetClasses.set(setOf("com.chargeflow.*"))
+  junit5PluginVersion.set("1.2.1")
+  mutators.set(setOf("<span id="cfgMut" class="str">DEFAULTS</span>"))
+  mutationThreshold.set(80)
+  threads.set(4)
+  outputFormats.set(setOf("HTML", "XML"))
+}</div>
+      </div>
+    </aside>
+  </section>
+
+  <section class="panel" style="margin-top:16px">
+    <div class="head"><div><h2>Kill matrix · <span id="mxRule"></span></h2><p>Rows are mutants, columns are tests. Green = this test killed the mutant. Pink = the test still passed with the mutant in place.</p></div></div>
+    <div class="matrix" id="matrix"><div class="empty">Run the analysis to fill the matrix.</div></div>
+  </section>
+
+  <section class="panel" style="margin-top:16px">
+    <div class="head"><div><h2>Mutants</h2><p>For every survivor the lab searches for an input where the mutant and the real code disagree. That input is the test you are missing.</p></div><div class="ctrl"><label class="toggle"><input type="checkbox" id="onlySurv"> Survivors only</label></div></div>
+    <div class="scroll"><table class="mtab"><thead><tr><th>Mutant</th><th>Line</th><th>Mutator</th><th>Change</th><th>Status</th><th>Detail</th></tr></thead><tbody id="mBody"></tbody></table></div>
+  </section>
+
+  <div class="footer"><span>CHARGEFLOW · PIT LAB</span><span>Mutation engine re-implemented in JavaScript; mutator names and behaviour follow PIT (pitest.org).</span></div>
+</main>
+
+<script src="assets/rules.js"></script>
+<script src="assets/phone.js"></script>
+<script>
+(function () {
+  CF.nav('pit.html');
+  const $ = s => document.querySelector(s);
+  const clone = t => ({ ...t, args: JSON.parse(JSON.stringify(t.args)) });
+  let tests = CF.DEFAULT_TESTS.map(clone);
+  let group = 'DEFAULTS', scope = 'all', view = CF.RULES[0].id, busy = false, curMut = null, selMut = null;
+  let mutants = {}; // ruleId -> [mutant with .res]
+  const history = [];
+  let lastRun = false;
+  CF.mountSpeed($('#speed'));
+
+  // ---------- setup
+  $('#scope').innerHTML += CF.RULES.map(r => `<option value="${r.id}">${r.id}()</option>`).join('');
+  $('#scope').onchange = e => { scope = e.target.value; if (scope !== 'all') view = scope; regen(); };
+  $('#grp').querySelectorAll('button').forEach(b => b.onclick = () => { if (busy) return; group = b.dataset.g; $('#grp').querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b)); $('#cfgMut').textContent = group; regen(); });
+  $('#kotlin').onchange = renderTests;
+  $('#onlySurv').onchange = renderTable;
+  $('#reset').onclick = () => { if (busy) return; tests = CF.DEFAULT_TESTS.map(clone); regen(); };
+
+  function regen() {
+    mutants = {};
+    for (const r of CF.RULES) mutants[r.id] = CF.generateMutants(r, { stronger: group === 'STRONGER' }).map(m => ({ ...m, res: null }));
+    lastRun = false; selMut = null; curMut = null;
+    renderAll();
+  }
+  const inScope = () => CF.RULES.filter(r => scope === 'all' || r.id === scope);
+  const allMuts = () => inScope().flatMap(r => mutants[r.id]);
+
+  // ---------- source viewer
+  function renderTabs() {
+    $('#tabs').innerHTML = CF.RULES.map(r => {
+      const ms = mutants[r.id], done = ms.filter(m => m.res);
+      const sv = done.filter(m => m.res.status !== 'KILLED').length;
+      const badge = done.length ? `<span class="c ${sv ? 'bad' : 'ok'}">${sv ? sv + ' alive' : 'all killed'}</span>` : `<span class="c" style="background:#eef3f4">${ms.length}</span>`;
+      return `<button data-r="${r.id}" class="${r.id === view ? 'on' : ''}">${r.id}${badge}</button>`;
+    }).join('');
+    $('#tabs').querySelectorAll('button').forEach(b => b.onclick = () => { view = b.dataset.r; selMut = null; renderSource(); renderTabs(); renderMatrix(); renderNow(); });
+  }
+  function renderSource() {
+    const r = CF.rule(view), ms = mutants[view];
+    $('#rdesc').innerHTML = `<b style="color:var(--ink)">${r.title}.</b> ${r.desc}`;
+    $('#mCount').textContent = ms.length + ' mutants';
+    const lines = r.src.split('\n');
+    const focus = curMut || selMut;
+    $('#src').innerHTML = lines.map((l, i) => {
+      const here = ms.filter(m => m.line === i + 1);
+      const cls = focus && focus.rule === view && focus.line === i + 1 ? (curMut ? 'cur' : 'sel') : '';
+      return `<div class="ln ${cls}"><span class="no">${i + 1}</span><span class="code light" style="background:none;border:0;padding:0">${CF.highlight(l) || ' '}</span><span class="marks">${here.map(m => `<span class="mk ${curMut === m ? 'run' : m.res ? m.res.status : ''}" data-m="${m.id}" title="${m.id} ${m.op}: ${CF.esc(m.desc)}${m.res ? ' → ' + m.res.status : ''}"></span>`).join('')}</span></div>`;
+    }).join('');
+    $('#src').querySelectorAll('.mk').forEach(x => x.onclick = () => { selMut = ms.find(m => m.id === x.dataset.m); renderSource(); renderNow(); });
+  }
+  function mutLineDiff(m) {
+    const r = CF.rule(m.rule), ol = r.src.split('\n')[m.line - 1], nl = m.src.split('\n')[m.line - 1];
+    return `<div class="diff"><div class="del">- ${CF.esc(ol.trim())}</div><div class="add">+ ${CF.esc(nl.trim())}</div></div>`;
+  }
+  function renderNow() {
+    const m = curMut || selMut;
+    if (!m) { $('#now').innerHTML = '<div class="small muted">Run the analysis, or click a square to inspect a mutant.</div>'; return; }
+    const st = m.res ? m.res.status : (curMut ? 'RUNNING' : 'NOT RUN');
+    const cls = { KILLED: 'pass', SURVIVED: 'fail', NO_COVERAGE: 'warn', RUNNING: 'run' }[st] || 'idle';
+    $('#now').innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><b style="font-size:13px">${m.id} · ${m.op}</b><span class="pill ${cls}">${st}</span></div>
+      <div class="small muted" style="margin-bottom:8px">${CF.MUTATORS[m.op]}</div>${mutLineDiff(m)}
+      ${m.res && m.res.killedBy ? `<div class="small" style="margin-top:8px">Killed by <b>${CF.esc(m.res.killedBy.name)}()</b>: expected ${CF.fmt(m.res.killedBy.expect)}, mutant returned ${CF.fmt(m.res.results.find(x => !x.pass).got)}</div>` : ''}
+      ${m.res && m.res.status !== 'KILLED' ? suggestHtml(m) : ''}`;
+    bindSuggest($('#now'));
+  }
+
+  // ---------- tests
+  function renderTests() {
+    const kt = $('#kotlin').checked;
+    let h = '';
+    for (const r of CF.RULES) {
+      const ts = tests.filter(t => t.rule === r.id);
+      h += `<div class="tgrp">${r.id}() · ${ts.length} test${ts.length === 1 ? '' : 's'}</div>`;
+      h += ts.map(t => `<div class="trow ${t.enabled ? '' : 'off'} ${t.added ? 'added' : ''}"><input type="checkbox" data-t="${t.id}" ${t.enabled ? 'checked' : ''}><div><div class="nm">${CF.esc(t.name)}${t.added ? ' <span class="pill pass" style="padding:2px 6px">added</span>' : ''}</div><div class="sig">${t.rule}(${t.args.map(CF.fmt).join(', ')}) == ${CF.fmt(t.expect)}</div></div><button class="x" data-del="${t.id}" title="Delete test">×</button>${kt ? `<div class="kt code light">${CF.highlight(CF.testToKotlin(t))}</div>` : ''}</div>`).join('') || '<div class="empty" style="padding:10px">No tests for this rule: every mutant here will be NO_COVERAGE.</div>';
+    }
+    $('#tests').innerHTML = h;
+    $('#tCount').textContent = tests.filter(t => t.enabled).length + ' enabled';
+    $('#tests').querySelectorAll('[data-t]').forEach(c => c.onchange = () => { tests.find(t => t.id === c.dataset.t).enabled = c.checked; renderTests(); markStale(); });
+    $('#tests').querySelectorAll('[data-del]').forEach(c => c.onclick = () => { if (busy) return; tests = tests.filter(t => t.id !== c.dataset.del); renderTests(); markStale(); });
+  }
+  function markStale() { if (lastRun) { $('#aMsg').innerHTML = '<span style="color:#9a6500">Suite changed: re-run the analysis to update the score.</span>'; } }
+
+  // add-test form
+  $('#aRule').innerHTML = CF.RULES.map(r => `<option value="${r.id}">${r.id}</option>`).join('');
+  function renderArgs() {
+    const r = CF.rule($('#aRule').value);
+    $('#aArgs').innerHTML = r.params.map(p => p === 'slot'
+      ? `<label class="toggle"><input type="checkbox" data-a="offline"> offline</label><label class="toggle"><input type="checkbox" data-a="occupied"> occupied</label>`
+      : `<input class="inp" data-a="${p}" placeholder="${p}">`).join('');
+    $('#aExp').value = '';
+  }
+  $('#aRule').onchange = renderArgs;
+  function readArgs() {
+    const r = CF.rule($('#aRule').value);
+    return r.params.map(p => {
+      if (p === 'slot') return { offline: $('#aArgs [data-a=offline]').checked, occupied: $('#aArgs [data-a=occupied]').checked };
+      const v = $(`#aArgs [data-a=${p}]`).value.trim();
+      if (v === '' || isNaN(+v)) throw new Error(`"${p}" must be a number`);
+      return +v;
+    });
+  }
+  function parseExp(s) {
+    s = s.trim();
+    if (s === 'true' || s === 'false') return s === 'true';
+    if (s !== '' && !isNaN(+s)) return +s;
+    return s.replace(/^"|"$/g, '');
+  }
+  $('#aOracle').onclick = () => {
+    try { const r = CF.rule($('#aRule').value); $('#aExp').value = CF.fmt(CF.compile(r.src)(...readArgs())); $('#aMsg').textContent = ''; }
+    catch (e) { $('#aMsg').innerHTML = `<span style="color:#b33a30">${e.message}</span>`; }
+  };
+  $('#aAdd').onclick = () => {
+    try {
+      const rule = $('#aRule').value, args = readArgs(), exp = parseExp($('#aExp').value);
+      if ($('#aExp').value.trim() === '') throw new Error('Enter the expected value');
+      addTest(rule, args, exp);
+      $('#aMsg').innerHTML = '<span style="color:#187842">Test added. Re-run the analysis to see its effect.</span>';
+    } catch (e) { $('#aMsg').innerHTML = `<span style="color:#b33a30">${e.message}</span>`; }
+  };
+  function addTest(rule, args, exp) {
+    const name = `${rule} with ${args.map(a => typeof a === 'object' ? (a.offline ? 'offline' : a.occupied ? 'occupied' : 'free') + ' slot' : a).join(', ')} returns ${typeof exp === 'string' ? exp : exp}`;
+    const t = CF.makeTest(rule, args, exp, name);
+    t.added = true;
+    const orig = CF.compile(CF.rule(rule).src)(...args);
+    if (!CF.same(orig, exp)) t.name += ' (wrong expectation!)';
+    tests.push(t);
+    renderTests();
+    return t;
+  }
+
+  // ---------- suggestions
+  function suggestHtml(m) {
+    const s = CF.suggestTest(m);
+    if (!s) return `<div class="small muted" style="margin-top:8px">No input changes the result: this is probably an <b>equivalent mutant</b>, which cannot be killed.</div>`;
+    const t = { rule: s.rule, args: s.args, expect: s.expect, name: `${s.rule} at ${s.args.map(a => typeof a === 'object' ? (a.offline ? 'offline' : a.occupied ? 'occupied' : 'free') : a).join(', ')}` };
+    const mutOut = CF.compile(m.src)(...s.args);
+    return `<div class="sugg"><div class="small">Killing input: <span class="mono">${s.rule}(${s.args.map(CF.fmt).join(', ')})</span> — real code returns <b>${CF.fmt(s.expect)}</b>, mutant returns <b>${CF.fmt(mutOut)}</b>.</div><div class="code light" style="font-size:11px">${CF.highlight(CF.testToKotlin(t))}</div><button class="btn sm primary" data-sugg='${CF.esc(JSON.stringify(s))}'>✚ Add this test to the suite</button></div>`;
+  }
+  function bindSuggest(root) {
+    root.querySelectorAll('[data-sugg]').forEach(b => b.onclick = () => {
+      if (busy) return;
+      const s = JSON.parse(b.dataset.sugg);
+      addTest(s.rule, s.args, s.expect);
+      b.disabled = true; b.textContent = 'Added ✓';
+      markStale();
+    });
+  }
+
+  // ---------- matrix
+  function renderMatrix() {
+    $('#mxRule').textContent = view + '()';
+    const ms = mutants[view], ts = tests.filter(t => t.rule === view && t.enabled);
+    if (!ms.some(m => m.res || m === curMut)) { $('#matrix').innerHTML = '<div class="empty">Run the analysis to fill the matrix for this rule.</div>'; return; }
+    let h = '<table><tr><th></th>' + ts.map(t => `<th class="t" title="${CF.esc(t.name)}">${CF.esc(t.name.slice(0, 26))}</th>`).join('') + '<th></th></tr>';
+    for (const m of ms) {
+      h += `<tr><th>${m.id} <span style="color:#9aabb1">${m.op.replace('_', ' ').slice(0, 18).toLowerCase()}</span></th>`;
+      for (const t of ts) {
+        const cell = m.cells && m.cells[t.id];
+        h += `<td class="c ${cell || ''}" title="${CF.esc(t.name)}">${cell === 'kill' ? '✓' : cell === 'pass' ? '·' : ''}</td>`;
+      }
+      const st = m.res ? m.res.status : m === curMut ? 'RUNNING' : '';
+      h += `<td class="st"><span class="pill ${{ KILLED: 'pass', SURVIVED: 'fail', NO_COVERAGE: 'warn', RUNNING: 'run' }[st] || 'idle'}">${st || '–'}</span></td></tr>`;
+    }
+    $('#matrix').innerHTML = h + '</table>';
+  }
+
+  // ---------- score + table
+  function renderScore() {
+    const ms = allMuts().filter(m => m.res);
+    const k = ms.filter(m => m.res.status === 'KILLED').length, s = ms.filter(m => m.res.status === 'SURVIVED').length, n = ms.filter(m => m.res.status === 'NO_COVERAGE').length;
+    const pct = ms.length ? Math.round(k / ms.length * 100) : 0;
+    $('#sK').textContent = k; $('#sS').textContent = s; $('#sN').textContent = n;
+    $('#pct').textContent = ms.length ? pct + '%' : '–';
+    $('#ring').style.setProperty('--p', pct);
+    $('#ring').style.setProperty('--c', pct >= 80 ? 'var(--lime)' : pct >= 60 ? '#ffcf6b' : '#ff8e85');
+    $('#scopeLbl').textContent = (scope === 'all' ? 'All rules' : scope + '()') + ' · ' + group + ' · ' + allMuts().length + ' mutants';
+    const done = lastRun && ms.length === allMuts().length;
+    $('#gate').className = 'pill ' + (done ? (pct >= 80 ? 'pass' : 'fail') : 'idle');
+    $('#gate').textContent = done ? (pct >= 80 ? `GATE PASSED ≥ 80%` : `BUILD FAILED < 80%`) : 'THRESHOLD 80%';
+    const ops = {};
+    for (const m of ms) { ops[m.op] = ops[m.op] || [0, 0]; ops[m.op][1]++; if (m.res.status === 'KILLED') ops[m.op][0]++; }
+    $('#bars').innerHTML = Object.entries(ops).map(([o, [a, b]]) => `<div class="b"><span title="${CF.MUTATORS[o]}">${o}</span><div class="tr"><div class="f" style="width:${a / b * 100}%"></div></div><span>${a}/${b}</span></div>`).join('') || '<div class="small" style="color:#8fb3c0">No results yet.</div>';
+    $('#hist').innerHTML = history.map((h, i) => `<span class="${i === history.length - 1 ? 'last' : ''}" style="height:${Math.max(4, h)}%" title="Run ${i + 1}: ${h}%"></span>`).join('') || '<div class="small" style="color:#8fb3c0">Each run adds a bar.</div>';
+  }
+  function renderTable() {
+    const only = $('#onlySurv').checked;
+    const ms = allMuts().filter(m => !only || (m.res && m.res.status !== 'KILLED'));
+    $('#mBody').innerHTML = ms.map(m => {
+      const st = m.res ? m.res.status : '';
+      const detail = !m.res ? '' : m.res.status === 'KILLED' ? `killed by <b>${CF.esc(m.res.killedBy.name)}()</b>` : suggestHtml(m);
+      return `<tr class="${m.res && m.res.status !== 'KILLED' ? 'sv' : ''}"><td class="mono">${m.id}</td><td class="mono">${m.line}</td><td class="mono small">${m.op}</td><td class="mono small">${CF.esc(m.original)} → ${CF.esc(m.replacement)}</td><td><span class="pill ${{ KILLED: 'pass', SURVIVED: 'fail', NO_COVERAGE: 'warn' }[st] || 'idle'}">${st || 'NOT RUN'}</span></td><td style="max-width:520px">${detail}</td></tr>`;
+    }).join('') || '<tr><td colspan="6" class="empty">Nothing to show.</td></tr>';
+    bindSuggest($('#mBody'));
+  }
+  function renderAll() { renderTabs(); renderSource(); renderTests(); renderMatrix(); renderScore(); renderTable(); renderNow(); }
+
+  // ---------- the analysis
+  async function analyse() {
+    if (busy) return; busy = true;
+    ['#run', '#fixAll', '#reset'].forEach(s => $(s).disabled = true);
+    $('#aMsg').textContent = '';
+    for (const m of allMuts()) { m.res = null; m.cells = {}; }
+    let testsRun = 0;
+    renderAll();
+    for (const r of inScope()) {
+      view = r.id; renderTabs();
+      for (const m of mutants[r.id]) {
+        curMut = m; m.cells = {};
+        renderSource(); renderNow(); renderMatrix();
+        await CF.sleep(350);
+        let fn; try { fn = CF.compile(m.src); } catch (e) { fn = null; }
+        const covering = tests.filter(t => t.enabled && t.rule === m.rule);
+        let killer = null;
+        for (const t of covering) {
+          m.cells[t.id] = 'run'; renderMatrix();
+          await CF.sleep(170);
+          const res = CF.runTest(fn, t); testsRun++;
+          m.cells[t.id] = res.pass ? 'pass' : 'kill';
+          renderMatrix();
+          if (!res.pass) { killer = t; break; } // PIT stops at the first killing test
+        }
+        m.res = CF.runMutant(m, tests);
+        $('#sT').textContent = testsRun;
+        renderScore(); renderTabs();
+        await CF.sleep(120);
+      }
+    }
+    curMut = null;
+    lastRun = true;
+    history.push(CF.mutationScore(allMuts().map(m => m.res)).pct);
+    if (history.length > 14) history.shift();
+    busy = false;
+    ['#run', '#fixAll', '#reset'].forEach(s => $(s).disabled = false);
+    renderAll();
+  }
+  $('#run').onclick = analyse;
+  $('#fixAll').onclick = async () => {
+    if (busy) return;
+    if (!lastRun) { await analyse(); }
+    ['#run', '#fixAll', '#reset'].forEach(s => $(s).disabled = true);
+    let added = 0;
+    for (const m of allMuts()) {
+      if (!m.res || m.res.status === 'KILLED') continue;
+      const s = CF.suggestTest(m);
+      if (!s) continue;
+      // skip if an existing test already covers this exact input
+      if (tests.some(t => t.rule === s.rule && JSON.stringify(t.args) === JSON.stringify(s.args))) continue;
+      addTest(s.rule, s.args, s.expect); added++;
+      await CF.sleep(250);
+    }
+    $('#aMsg').innerHTML = `<span style="color:#187842">Added ${added} killing test(s). Running the analysis again…</span>`;
+    await CF.sleep(500);
+    await analyse();
+  };
+
+  renderArgs();
+  regen();
+  window.__pit = { analyse, history, state: () => ({ score: CF.mutationScore(allMuts().map(m => m.res).filter(Boolean)), tests: tests.length }) };
+})();
+</script>
+</body>
+</html>

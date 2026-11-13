@@ -1,0 +1,358 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Katalon Lab · ChargeFlow</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+<style>
+.how{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:16px}
+.how .panel{padding:13px 15px}
+.how b{display:block;font-size:13.5px;margin:6px 0 4px}
+.how p{margin:0;font-size:12px;color:var(--muted);line-height:1.5}
+.how .n{font:500 10px var(--mono);color:var(--teal)}
+.kl{display:grid;grid-template-columns:360px minmax(0,1fr);gap:16px;align-items:start}
+.phone-panel{padding:14px 10px;position:sticky;top:80px}
+.recbar{display:flex;align-items:center;justify-content:center;gap:8px;font:500 11px var(--mono);color:var(--muted);margin-bottom:8px;min-height:24px}
+.recbar .r{width:9px;height:9px;border-radius:50%;background:#d6453b;animation:blink 1s infinite}
+.ide-tb{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:11px 14px;border-bottom:1px solid var(--line2);background:#f8fbfb;border-radius:var(--r) var(--r) 0 0}
+.ide-tb .sep{width:1px;height:26px;background:var(--line)}
+.itabs{display:flex;gap:2px;padding:0 10px;border-bottom:1px solid var(--line2)}
+.itabs button{border:0;background:none;padding:11px 12px;font-weight:700;font-size:12.5px;color:var(--muted);border-bottom:2px solid transparent}
+.itabs button.on{color:var(--ink);border-bottom-color:var(--teal)}
+.itabs .cnt{font:500 10px var(--mono);background:#e8eef0;border-radius:8px;padding:1px 6px;margin-left:4px}
+.pane{min-height:420px;max-height:560px;overflow:auto}
+.steps{width:100%;border-collapse:collapse;font-size:12px}
+.steps th{font:500 10px var(--mono);text-transform:uppercase;color:var(--muted);text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);position:sticky;top:0;background:#fff}
+.steps td{padding:8px 10px;border-bottom:1px solid var(--line2);vertical-align:middle}
+.steps tr.cur{background:#e9fbfa}.steps tr.pass td:last-child:before{content:'✓';color:var(--green);font-weight:800}
+.steps tr.fail{background:#fff0ee}.steps tr.fail td:last-child:before{content:'✗';color:var(--red);font-weight:800}
+.steps tr.new{animation:flashin 1.2s}
+@keyframes flashin{from{background:#fff3c4}to{background:transparent}}
+.steps .ops button{border:0;background:none;color:#9aabb1;padding:0 3px;font-size:13px}
+.steps .ops button:hover{color:var(--ink)}
+.steps input.inp{padding:4px 6px;font-size:12px;width:100%}
+.verif{color:#0b7285;font-weight:700}
+.or{display:grid;grid-template-columns:260px 1fr;min-height:420px}
+.or .tree{border-right:1px solid var(--line2);padding:10px;font:12px/1.8 var(--mono)}
+.or .tree .f{color:var(--muted)}
+.or .tree .o{padding-left:16px;cursor:pointer;border-radius:6px}
+.or .tree .o:hover,.or .tree .o.on{background:#e9f6f5}
+.or .tree .o.healed:after{content:' ⚕';color:var(--amber)}
+.or .det{padding:14px}
+.loc{display:grid;grid-template-columns:110px 1fr;gap:6px 10px;font-size:12px;align-items:center}
+.loc .k{font:500 10px var(--mono);text-transform:uppercase;color:var(--muted)}
+.loc .v{font:12px var(--mono);background:#f6faf9;border:1px solid var(--line);border-radius:7px;padding:6px 8px;word-break:break-all}
+.loc .v.sel{border-color:var(--teal);background:#eafaf8}
+.dd{width:100%;border-collapse:collapse;font-size:12px}
+.dd th{font:500 10px var(--mono);text-transform:uppercase;color:var(--muted);text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);background:#f8fbfb}
+.dd td{padding:8px 10px;border-bottom:1px solid var(--line2);font-family:var(--mono)}
+.dd tr.cur{background:#e9fbfa}.dd input{width:80px}
+.heal{margin:12px 14px;border:1px solid #f1d59a;background:var(--amber-bg);border-radius:12px;padding:12px 14px;font-size:12px}
+.heal table{width:100%;font:11px var(--mono);margin:8px 0;border-collapse:collapse}
+.heal td{padding:4px 6px;border-top:1px dashed #ebcf8d}
+.sumbar{display:flex;gap:10px;align-items:center;padding:10px 14px;border-top:1px solid var(--line2);font-size:12px}
+@media(max-width:1100px){.kl{grid-template-columns:1fr}.phone-panel{position:static}.how{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+<main class="page">
+  <section class="hero">
+    <div class="eyebrow">Katalon Lab · record, verify, play back, heal</div>
+    <h1>Build a Katalon test by using the app.</h1>
+    <p>This is how Katalon Studio's <b>Record Web</b> works. Press Record and use the ChargeFlow app: every click and every value you type becomes a <span class="mono">WebUI</span> step, and every element you touch is saved in the Object Repository with its locators. Add verification checkpoints, then play the test back. You can also run it against a data file, or change the app's HTML and see self-healing find the moved buttons.</p>
+  </section>
+
+  <div class="how">
+    <div class="panel"><span class="n">01 · RECORD</span><b>Capture actions</b><p>Clicks, typing and selections become Groovy keyword steps.</p></div>
+    <div class="panel"><span class="n">02 · OBJECTS</span><b>Object Repository</b><p>Each element is stored once with XPath, CSS and attribute locators.</p></div>
+    <div class="panel"><span class="n">03 · VERIFY</span><b>Checkpoints</b><p>Click "Add verification", then click an element to assert its text.</p></div>
+    <div class="panel"><span class="n">04 · EXECUTE</span><b>Playback & data</b><p>Replay once, or once per row of a data file (data-driven testing).</p></div>
+    <div class="panel"><span class="n">05 · MAINTAIN</span><b>Self-healing</b><p>If a locator breaks after a UI change, Katalon tries the other locators.</p></div>
+  </div>
+
+  <section class="kl">
+    <aside class="panel phone-panel">
+      <div class="recbar" id="recbar">Application under test · staging</div>
+      <div class="phone-wrap" id="phone"></div>
+      <div class="body" style="padding:10px 6px 0">
+        <label class="toggle"><input type="checkbox" id="uiv2"> Deploy new UI build (renames element IDs)</label>
+        <div class="ctrl" style="margin-top:10px"><label>Build</label><select class="sel" id="defect" style="font-size:12px;max-width:250px"></select></div>
+      </div>
+    </aside>
+
+    <section class="panel">
+      <div class="ide-tb">
+        <button class="btn rec" id="rec">● Record Web</button>
+        <button class="btn" id="verify" disabled>✓ Add verification</button>
+        <span class="sep"></span>
+        <button class="btn primary" id="play">▶ Run</button>
+        <button class="btn" id="playDD">▶ Run with data file</button>
+        <button class="btn danger" id="stop" disabled>■ Stop</button>
+        <span class="sep"></span>
+        <select class="sel" id="sample" style="font-size:12px"><option value="">Load a sample test…</option></select>
+        <button class="btn sm" id="clear">Clear</button>
+        <span class="sep"></span>
+        <div class="ctrl" id="speed"></div>
+        <label class="toggle"><input type="checkbox" id="heal" checked> Self-healing</label>
+      </div>
+      <div class="itabs" id="itabs">
+        <button class="on" data-t="manual">Manual<span class="cnt" id="cSteps">0</span></button>
+        <button data-t="script">Script</button>
+        <button data-t="or">Object Repository<span class="cnt" id="cObj">0</span></button>
+        <button data-t="data">Data file</button>
+      </div>
+      <div class="pane" id="p-manual"></div>
+      <div class="pane hidden" id="p-script"><div class="code light" id="script" style="margin:14px;border-radius:10px"></div></div>
+      <div class="pane hidden" id="p-or"><div class="or"><div class="tree" id="tree"></div><div class="det" id="det"></div></div></div>
+      <div class="pane hidden" id="p-data">
+        <div class="body small muted">Data file <b class="mono">Data Files/BatteryLevels</b> (CSV). In a Test Suite, Katalon binds the <span class="mono">battery</span> and <span class="mono">expected</span> columns to test case variables and runs the case once per row. The template books C-01 with that battery level and checks the priority badge, or the validation error.</div>
+        <table class="dd"><thead><tr><th>#</th><th>battery</th><th>expected</th><th>result</th><th></th></tr></thead><tbody id="dd"></tbody></table>
+        <div class="body"><button class="btn sm" id="ddAdd">+ Add row</button> <button class="btn sm" id="ddReset">Reset rows</button></div>
+      </div>
+      <div id="healBox"></div>
+      <div class="sumbar" id="sumbar"><span class="pill idle" id="status">READY</span><span class="muted" id="sumtext">Press Record, or load a sample test.</span></div>
+      <div class="console" id="log" style="height:210px"></div>
+    </section>
+  </section>
+
+  <div class="footer"><span>CHARGEFLOW · KATALON LAB</span><span>Recorder, object repository and playback are reproduced in the browser; generated Groovy follows Katalon's WebUI/WS keyword API.</span></div>
+</main>
+
+<script src="assets/rules.js"></script>
+<script src="assets/phone.js"></script>
+<script src="assets/cases.js"></script>
+<script>
+(function () {
+  CF.nav('katalon.html');
+  const $ = s => document.querySelector(s);
+  let steps = [], recording = false, checkpoint = false, playing = false, abort = false, tab = 'manual', defect = 'none', selObj = null;
+  const healed = new Set();
+  const phone = new CF.Phone($('#phone'), { rules: () => CF.buildRules(defect) });
+  const DD0 = [[0, 'HIGH'], [19, 'HIGH'], [20, 'HIGH'], [21, 'NORMAL'], [100, 'NORMAL'], [101, 'ERROR'], [-1, 'ERROR']];
+  let dd = DD0.map(([b, e]) => ({ battery: b, expected: e, result: '' }));
+  CF.mountSpeed($('#speed'));
+
+  $('#defect').innerHTML = Object.entries(CF.DEFECTS).map(([k, d]) => `<option value="${k}">${d.label}</option>`).join('');
+  $('#defect').onchange = e => { defect = e.target.value; phone.render(); log('wn', 'Build switched: ' + CF.DEFECTS[defect].label); };
+  $('#sample').innerHTML += CF.CASES.map(c => `<option value="${c.id}">${c.id} — ${c.title}</option>`).join('');
+  $('#sample').onchange = e => { if (!e.target.value || playing) return; const c = CF.CASES.find(x => x.id === e.target.value); steps = c.steps.map(s => ({ ...s })); stopRec(); render(); log('i', `Loaded sample: Test Cases/${c.group}/${c.id}`); e.target.value = ''; };
+  $('#clear').onclick = () => { if (playing) return; steps = []; render(); };
+  $('#itabs').querySelectorAll('button').forEach(b => b.onclick = () => { tab = b.dataset.t; $('#itabs').querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b)); ['manual', 'script', 'or', 'data'].forEach(t => $('#p-' + t).classList.toggle('hidden', t !== tab)); });
+  $('#uiv2').onchange = e => { phone.uiV2 = e.target.checked; if (!e.target.checked) { CF.locOverrides = {}; healed.clear(); renderHeal(); } phone.render(); log('wn', e.target.checked ? 'New front-end build deployed: element IDs now use the "cf-v2-" prefix. Recorded XPath locators will break.' : 'Original front-end build restored.'); };
+
+  function log(cls, msg) {
+    const d = document.createElement('div'); d.className = 'ln';
+    d.innerHTML = `<span class="t">${CF.ts()}</span> <span class="${cls}">${CF.esc(msg)}</span>`;
+    $('#log').appendChild(d); $('#log').scrollTop = 1e9;
+  }
+  function status(st, text, sum) { $('#status').className = 'pill ' + st; $('#status').textContent = text; if (sum !== undefined) $('#sumtext').textContent = sum; }
+
+  // ---------- recording
+  function startRec() {
+    recording = true;
+    $('#rec').classList.add('on'); $('#rec').textContent = '■ Stop recording'; $('#verify').disabled = false;
+    $('#recbar').innerHTML = '<span class="r"></span> RECORDING — use the app';
+    if (!steps.length) { phone.reset(); add({ k: 'openBrowser' }); add({ k: 'navigate' }); }
+    status('run', 'RECORDING', 'Every action in the app becomes a step. Use "Add verification" for checkpoints.');
+    log('i', 'Recorder started on https://staging.chargeflow.app/station/BLR-07');
+  }
+  function stopRec() {
+    if (!recording) return;
+    recording = false; checkpoint = false;
+    $('#rec').classList.remove('on'); $('#rec').textContent = '● Record Web'; $('#verify').disabled = true; $('#verify').classList.remove('dark');
+    $('#recbar').textContent = 'Application under test · staging';
+    clearHover();
+    status('idle', 'READY', `${steps.length} steps recorded. Press Run to play them back.`);
+    log('i', `Recorder stopped — ${steps.length} steps`);
+  }
+  $('#rec').onclick = () => { if (playing) return; recording ? stopRec() : startRec(); };
+  $('#verify').onclick = () => {
+    checkpoint = !checkpoint;
+    $('#verify').classList.toggle('dark', checkpoint);
+    $('#recbar').innerHTML = checkpoint ? '<span class="r" style="background:#0b7285"></span> CLICK AN ELEMENT TO VERIFY ITS TEXT' : '<span class="r"></span> RECORDING — use the app';
+  };
+  phone.onAction = a => {
+    if (!recording || playing || checkpoint) return;
+    const last = steps[steps.length - 1];
+    if (a.type === 'setText' && last && last.k === 'setText' && last.o === a.obj) last.v = a.value;
+    else add(a.type === 'click' ? { k: 'click', o: a.obj } : a.type === 'setText' ? { k: 'setText', o: a.obj, v: a.value } : { k: 'select', o: a.obj, v: a.value });
+    render();
+  };
+  // checkpoint capture (capture phase so the app does not react)
+  $('#phone').addEventListener('click', e => {
+    if (!recording || !checkpoint || playing) return;
+    const el = e.target.closest('[data-testid]');
+    if (!el) return;
+    e.preventDefault(); e.stopPropagation();
+    const obj = el.dataset.testid;
+    if (el.tagName === 'INPUT' || el.tagName === 'SELECT') add({ k: 'verifyPresent', o: obj });
+    else add({ k: 'verifyText', o: obj, v: el.textContent.trim() });
+    el.classList.add('hl-pass'); setTimeout(() => el.classList.remove('hl-pass'), 600);
+    checkpoint = false; $('#verify').classList.remove('dark');
+    $('#recbar').innerHTML = '<span class="r"></span> RECORDING — use the app';
+    render();
+  }, true);
+  let hoverEl = null;
+  function clearHover() { if (hoverEl) hoverEl.classList.remove('hl-rec'); hoverEl = null; }
+  $('#phone').addEventListener('mouseover', e => {
+    if (!recording || playing) return;
+    const el = e.target.closest('[data-testid]');
+    if (el === hoverEl) return;
+    clearHover(); if (el) { hoverEl = el; el.classList.add('hl-rec'); }
+  });
+  function add(s) { s._new = true; steps.push(s); if (s.o) log('t', `Recorded: ${CF.stepAction(s)} → ${CF.objPath(s.o)}${s.v !== undefined ? ` = '${s.v}'` : ''}`); render(); }
+
+  // ---------- rendering
+  function render(states) {
+    states = states || [];
+    $('#cSteps').textContent = steps.length;
+    $('#p-manual').innerHTML = steps.length ? `<table class="steps"><thead><tr><th>#</th><th>Action</th><th>Object</th><th>Input</th><th></th><th></th></tr></thead><tbody>${steps.map((s, i) =>
+      `<tr data-i="${i}" class="${states[i] || ''} ${s._new ? 'new' : ''}"><td class="mono muted">${i + 1}</td><td class="${/^verify/.test(s.k) ? 'verif' : ''}"><b>${CF.stepAction(s)}</b></td><td class="mono" style="font-size:11px">${s.o ? CF.objPath(s.o) : s.k === 'api' ? 'API/PUT_station_load' : ''}</td><td>${s.v !== undefined && !/^(openBrowser|navigate)$/.test(s.k) ? `<input class="inp" data-v="${i}" value="${CF.esc(s.v)}">` : ''}</td><td class="ops"><button data-up="${i}" title="Move up">↑</button><button data-dn="${i}" title="Move down">↓</button><button data-rm="${i}" title="Delete">×</button></td><td style="width:20px"></td></tr>`).join('')}</tbody></table>`
+      : '<div class="empty" style="padding:60px 20px">No steps yet.<br><br>Press <b>● Record Web</b> and use the app on the left,<br>or load one of the 12 sample tests.</div>';
+    steps.forEach(s => delete s._new);
+    $('#p-manual').querySelectorAll('[data-v]').forEach(x => x.onchange = () => { const s = steps[+x.dataset.v]; s.v = typeof s.v === 'number' ? +x.value : x.value; renderScript(); });
+    $('#p-manual').querySelectorAll('[data-rm]').forEach(x => x.onclick = () => { if (playing) return; steps.splice(+x.dataset.rm, 1); render(); });
+    $('#p-manual').querySelectorAll('[data-up]').forEach(x => x.onclick = () => { const i = +x.dataset.up; if (i > 0 && !playing) { [steps[i - 1], steps[i]] = [steps[i], steps[i - 1]]; render(); } });
+    $('#p-manual').querySelectorAll('[data-dn]').forEach(x => x.onclick = () => { const i = +x.dataset.dn; if (i < steps.length - 1 && !playing) { [steps[i + 1], steps[i]] = [steps[i], steps[i + 1]]; render(); } });
+    renderScript(); renderOR();
+  }
+  function renderScript() {
+    const head = `import static com.kms.katalon.core.testobject.ObjectRepository.findTestObject
+import static com.kms.katalon.core.testdata.TestDataFactory.findTestData
+import com.kms.katalon.core.webui.keyword.WebUiBuiltInKeywords as WebUI
+import com.kms.katalon.core.webservice.keyword.WSBuiltInKeywords as WS
+import com.kms.katalon.core.model.FailureHandling as FailureHandling
+import internal.GlobalVariable as GlobalVariable
+
+`;
+    $('#script').innerHTML = CF.highlight(head + (steps.length ? steps.map(CF.stepToGroovy).join('\n\n') : '// Record or load a test to generate the script')) +
+      `\n\n<span class="cm">// ---- Data-driven variant (variables bound to Data Files/BatteryLevels in the Test Suite)</span>\n` +
+      CF.highlight(`WebUI.openBrowser('')
+WebUI.navigateToUrl(GlobalVariable.baseUrl + '/station/BLR-07')
+WebUI.click(findTestObject('Page_Stations/btn_reserve_C01'))
+WebUI.setText(findTestObject('Page_Booking/input_battery'), battery)
+WebUI.click(findTestObject('Page_Booking/btn_confirm'))
+if (expected == 'ERROR') {
+    WebUI.verifyElementText(findTestObject('Page_Booking/err_battery'), 'Battery level must be between 0 and 100')
+} else {
+    WebUI.verifyElementText(findTestObject('Page_Confirmation/txt_priority'), expected + ' PRIORITY')
+}
+WebUI.closeBrowser()`);
+  }
+  function renderOR() {
+    const objs = [...new Set(steps.filter(s => s.o).map(s => s.o))];
+    $('#cObj').textContent = objs.length;
+    const byPage = {};
+    objs.forEach(o => { const [p] = CF.objPath(o).split('/'); (byPage[p] = byPage[p] || []).push(o); });
+    $('#tree').innerHTML = objs.length ? '<div class="f">▾ Object Repository</div>' + Object.entries(byPage).map(([p, os]) => `<div class="f" style="padding-left:8px">▾ 📁 ${p}</div>` + os.map(o => `<div class="o ${o === selObj ? 'on' : ''} ${healed.has(o) ? 'healed' : ''}" data-o="${o}">◆ ${o}</div>`).join('')).join('') : '<div class="muted">Empty. Recorded elements appear here.</div>';
+    $('#tree').querySelectorAll('[data-o]').forEach(x => x.onclick = () => { selObj = x.dataset.o; renderOR(); });
+    if (!selObj || !objs.includes(selObj)) selObj = objs[0] || null;
+    if (!selObj) { $('#det').innerHTML = ''; return; }
+    const L = CF.objLocators(selObj);
+    const el = phone.root.querySelector(`[data-testid="${selObj}"]`);
+    $('#det').innerHTML = `<h3 style="margin:0 0 4px;font-size:15px">${selObj}</h3><div class="small muted" style="margin-bottom:12px">Object Repository/${CF.objPath(selObj)} · Selection method: <b>XPath</b> (others used for self-healing)</div>
+      <div class="loc"><span class="k">XPath ★</span><span class="v sel">${CF.esc(L.xpath)}</span>
+      <span class="k">CSS</span><span class="v">${CF.esc(L.css)}</span>
+      <span class="k">Attributes</span><span class="v">tag = ${el ? el.tagName.toLowerCase() : '?'}<br>data-testid = ${selObj}${el && el.textContent.trim() ? '<br>text = ' + CF.esc(el.textContent.trim().slice(0, 50)) : ''}</span>
+      <span class="k">Present now</span><span class="v">${el ? 'yes — on the current screen' : 'no — not on the current screen'}</span></div>
+      ${healed.has(selObj) ? '<div class="note" style="margin-top:12px;background:var(--amber-bg);color:#7a5200">This object was found by self-healing during the last run. Approve the fix below to update its XPath.</div>' : ''}`;
+  }
+
+  // ---------- playback
+  async function play(list, label, opts) {
+    opts = opts || {};
+    const drv = new CF.Driver(phone, { log, heal: $('#heal').checked });
+    const states = [];
+    if (!opts.quiet) render(states);
+    log('i', `START ${label}`);
+    let ok = true;
+    for (let i = 0; i < list.length; i++) {
+      if (abort) { ok = null; break; }
+      if (!opts.quiet) { states[i] = 'cur'; render(states); const tr = $(`#p-manual tr[data-i="${i}"]`); tr && tr.scrollIntoView({ block: 'nearest' }); }
+      log('t', `[${i + 1}] ${CF.stepAction(list[i])}${list[i].o ? ' · ' + CF.objPath(list[i].o) : ''}`);
+      try { const m = await drv.exec(list[i]); log('ok', '    ✓ ' + m); states[i] = 'pass'; }
+      catch (e) { log('er', '    ✗ ' + e.message); states[i] = 'fail'; ok = false; if (!opts.quiet) render(states); break; }
+      if (!opts.quiet) render(states);
+      await CF.sleep(200);
+    }
+    CF.hideCursor();
+    drv.healed.forEach(o => healed.add(o));
+    log(ok ? 'ok' : ok === null ? 'wn' : 'er', `END ${label} — ${ok ? 'PASSED' : ok === null ? 'STOPPED' : 'FAILED'}`);
+    return { ok, healed: drv.healed };
+  }
+  function lock(on) {
+    playing = on;
+    ['#rec', '#play', '#playDD', '#clear', '#sample', '#defect', '#uiv2'].forEach(s => $(s).disabled = on);
+    $('#stop').disabled = !on;
+  }
+  $('#stop').onclick = () => { abort = true; CF.paused = false; };
+  $('#play').onclick = async () => {
+    if (playing) return;
+    if (!steps.length) { status('warn', 'NO STEPS', 'Record something or load a sample test first.'); return; }
+    stopRec(); lock(true); abort = false;
+    const t0 = performance.now();
+    status('run', 'RUNNING', 'Playing back the recorded test…');
+    const r = await play(steps, 'Test Cases/Recorded/TC_Recorded');
+    const sec = ((performance.now() - t0) / 1000).toFixed(1);
+    if (r.ok) status(r.healed.length ? 'warn' : 'pass', r.healed.length ? 'PASSED · HEALED' : 'PASSED', `All ${steps.length} steps passed in ${sec}s${r.healed.length ? `, ${r.healed.length} locator(s) self-healed.` : '.'}`);
+    else if (r.ok === null) status('idle', 'STOPPED', 'Stopped by user.');
+    else status('fail', 'FAILED', `Failed after ${sec}s. ${!$('#heal').checked && phone.uiV2 ? 'Tip: turn on Self-healing and run again.' : 'Check the log for the failing assertion.'}`);
+    renderHeal(); lock(false);
+  };
+
+  // ---------- data-driven
+  function renderDD(cur) {
+    $('#dd').innerHTML = dd.map((r, i) => `<tr class="${cur === i ? 'cur' : ''}"><td>${i + 1}</td><td><input class="inp" data-b="${i}" value="${r.battery}"></td><td><select class="sel" data-e="${i}" style="padding:4px 6px;font-size:12px">${['HIGH', 'NORMAL', 'ERROR'].map(x => `<option ${x === r.expected ? 'selected' : ''}>${x}</option>`).join('')}</select></td><td>${r.result ? `<span class="pill ${r.result === 'PASSED' ? 'pass' : r.result === 'RUNNING' ? 'run' : 'fail'}">${r.result}</span>` : '<span class="muted">–</span>'}</td><td class="ops"><button class="btn sm" data-x="${i}" style="padding:2px 7px">×</button></td></tr>`).join('');
+    $('#dd').querySelectorAll('[data-b]').forEach(x => x.onchange = () => { dd[+x.dataset.b].battery = x.value; });
+    $('#dd').querySelectorAll('[data-e]').forEach(x => x.onchange = () => { dd[+x.dataset.e].expected = x.value; });
+    $('#dd').querySelectorAll('[data-x]').forEach(x => x.onclick = () => { if (!playing) { dd.splice(+x.dataset.x, 1); renderDD(); } });
+  }
+  $('#ddAdd').onclick = () => { dd.push({ battery: 50, expected: 'NORMAL', result: '' }); renderDD(); };
+  $('#ddReset').onclick = () => { dd = DD0.map(([b, e]) => ({ battery: b, expected: e, result: '' })); renderDD(); };
+  $('#playDD').onclick = async () => {
+    if (playing) return;
+    stopRec(); lock(true); abort = false;
+    $('#itabs [data-t=data]').click();
+    dd.forEach(r => r.result = '');
+    status('run', 'RUNNING', `Data-driven run: ${dd.length} iterations`);
+    let pass = 0;
+    for (let i = 0; i < dd.length; i++) {
+      if (abort) break;
+      const r = dd[i];
+      r.result = 'RUNNING'; renderDD(i);
+      const list = [{ k: 'openBrowser' }, { k: 'navigate' }, { k: 'click', o: 'btn_reserve_C01' }, { k: 'setText', o: 'input_battery', v: String(r.battery) }, { k: 'click', o: 'btn_confirm' },
+        r.expected === 'ERROR' ? { k: 'verifyText', o: 'err_battery', v: 'Battery level must be between 0 and 100' } : { k: 'verifyText', o: 'txt_priority', v: r.expected + ' PRIORITY' }, { k: 'closeBrowser' }];
+      const res = await play(list, `Iteration ${i + 1}/${dd.length} · battery=${r.battery}, expected=${r.expected}`, { quiet: true });
+      r.result = res.ok ? 'PASSED' : res.ok === null ? '' : 'FAILED';
+      if (res.ok) pass++;
+      renderDD();
+      await CF.sleep(300);
+    }
+    status(pass === dd.length ? 'pass' : 'fail', `${pass}/${dd.length} PASSED`, pass === dd.length ? 'Every row passed.' : 'Some rows failed. The failing values show exactly which partition or boundary is broken.');
+    renderHeal(); lock(false);
+  };
+
+  // ---------- self-healing insights
+  function renderHeal() {
+    renderOR();
+    const pending = [...healed].filter(o => !CF.locOverrides[o]);
+    if (!pending.length) { $('#healBox').innerHTML = ''; return; }
+    $('#healBox').innerHTML = `<div class="heal"><b>⚕ Self-healing insights: ${pending.length} broken locator(s)</b><div>The recorded XPath no longer matched after the UI change. Katalon found each element with its CSS locator instead and kept the test running.</div>
+      <table>${pending.map(o => `<tr><td>${CF.objPath(o)}</td><td style="color:#9b2d25">${CF.esc(CF.objLocators(o).xpath)}</td><td>→</td><td style="color:#1b6b3f">//*[@id='cf-v2-${o}']</td></tr>`).join('')}</table>
+      <button class="btn sm dark" id="approve">Approve: update the Object Repository</button></div>`;
+    $('#approve').onclick = () => {
+      pending.forEach(o => { CF.locOverrides[o] = `//*[@id='cf-v2-${o}']`; healed.delete(o); });
+      log('ok', `Object Repository updated: ${pending.length} XPath locator(s) replaced.`);
+      renderHeal();
+    };
+  }
+
+  render(); renderDD();
+  log('i', 'Katalon Lab ready. Press ● Record Web, or load a sample test from the list.');
+  window.__kat = { get steps() { return steps; }, set steps(v) { steps = v; render(); }, play: () => $('#play').click(), dd: () => dd, isPlaying: () => playing };
+})();
+</script>
+</body>
+</html>

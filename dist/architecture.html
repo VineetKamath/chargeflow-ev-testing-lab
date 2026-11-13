@@ -1,0 +1,696 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Live Architecture · ChargeFlow</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+<style>
+.scen{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:14px}
+.sc{border:1px solid var(--line);background:#fff;border-radius:14px;padding:13px 15px;text-align:left;transition:.15s;box-shadow:var(--shadow)}
+.sc:hover{border-color:#9fcfcb}
+.sc.on{border-color:var(--teal);box-shadow:0 0 0 3px #d8faf7}
+.sc .k{font:500 10px var(--mono);letter-spacing:.6px;text-transform:uppercase}
+.sc b{display:block;font-size:14px;margin:5px 0 4px}
+.sc p{margin:0;font-size:11.5px;color:var(--muted);line-height:1.5}
+.toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:11px 14px;border-bottom:1px solid var(--line2)}
+.toolbar .sep{width:1px;height:26px;background:var(--line)}
+.say{display:flex;gap:12px;align-items:center;padding:12px 16px;background:var(--navy);color:#e3f1f3;font-size:14px;min-height:52px}
+.say .stp{font:500 10px var(--mono);color:var(--lime);background:#123f58;border-radius:20px;padding:5px 9px;white-space:nowrap}
+.say .tx{flex:1;line-height:1.45}
+.diagram{overflow:auto;background:#fbfdfd;border-radius:0 0 var(--r) var(--r)}
+svg.arch{display:block;width:100%;min-width:1150px;height:auto;font-family:var(--sans)}
+.cl rect{fill:#f4f9f9;stroke:#d5e4e6;stroke-width:1.2}
+.cl.pit rect{fill:#0b2e43;stroke:#0b2e43}
+.cl text{font:500 11px var(--mono);letter-spacing:1px;fill:#4f7381;text-transform:uppercase}
+.cl.pit text{fill:var(--lime)}
+.nd{cursor:pointer}
+.nd rect.b{fill:#fff;stroke:#c9dadd;stroke-width:1.3;transition:stroke .3s,fill .3s}
+.nd text.t{font-size:12.5px;font-weight:800;fill:#0c2738}
+.nd text.s{font:10px var(--mono);fill:#6b818a}
+.nd .bdg rect{fill:#e8eff0;stroke:#fff;stroke-width:1.5}.nd .bdg text{font:500 9.5px var(--mono);fill:#4f6670}
+.nd.pitn rect.b{fill:#103a52;stroke:#2a5d78}.nd.pitn text.t{fill:#fff}.nd.pitn text.s{fill:#9cc0cc}
+.nd.active rect.b{stroke:var(--aqua);stroke-width:2.6;fill:#effffe;filter:url(#glow)}
+.nd.pitn.active rect.b{fill:#14506b}
+.nd.pass rect.b{stroke:#1f9d62;stroke-width:2}
+.nd.pass .bdg rect{fill:#dff6e9}.nd.pass .bdg text{fill:#187842}
+.nd.fail rect.b{stroke:var(--red);stroke-width:2.4;fill:#fff3f2}
+.nd.fail .bdg rect{fill:#ffe1de}.nd.fail .bdg text{fill:#b33a30}
+.nd.warn rect.b{stroke:var(--amber);stroke-width:2.2;fill:#fffaf0}
+.nd.warn .bdg rect{fill:#ffefcc}.nd.warn .bdg text{fill:#8d5a00}
+.nd.skip{opacity:.38}
+.nd.sel rect.b{stroke-dasharray:5 3;stroke:#0c2738;stroke-width:2}
+.nd.pitn.pass .bdg rect{fill:#1d5a3c}.nd.pitn.pass .bdg text{fill:#a8f0c6}
+.nd.pitn.fail .bdg rect{fill:#5a1d1d}.nd.pitn.fail .bdg text{fill:#ffb4ad}
+.nd.pitn.fail rect.b{fill:#3a1820}
+.nd.pitn .bdg rect{fill:#1d4b63}.nd.pitn .bdg text{fill:#cfe5ea}
+.ed path{fill:none;stroke:#b7cacf;stroke-width:1.5;transition:stroke .3s}
+.ed.active path{stroke:var(--aqua);stroke-width:2.4;stroke-dasharray:7 5;animation:dash .6s linear infinite}
+.ed.done path{stroke:#7cc9a4}
+.ed.bad path{stroke:#ef8c84}
+.ed.hl path{stroke:#0c2738;stroke-width:2}
+.ed text{font:9.5px var(--mono);fill:#5a7480}
+.ed .lb{fill:#fbfdfd}
+@keyframes dash{to{stroke-dashoffset:-24}}
+.pk{filter:url(#glow)}
+.lower{display:grid;grid-template-columns:1.05fr 1fr 1fr;gap:16px;margin-top:16px;align-items:start}
+.job{display:grid;grid-template-columns:130px 1fr 70px;gap:10px;align-items:center;padding:9px 0;border-bottom:1px solid var(--line2);font-size:12px}
+.job:last-child{border:0}
+.job b{font:500 11.5px var(--mono)}
+.job .tr{height:10px;border-radius:9px;background:#e9f0f1;overflow:hidden;position:relative}
+.job .f{position:absolute;inset:0;width:0;border-radius:9px;transition:width .4s}
+.job.run .f{width:100%;background:repeating-linear-gradient(-45deg,#35d4ce,#35d4ce 8px,#7fe6e1 8px,#7fe6e1 16px);background-size:200% 100%;animation:stripes 1s linear infinite}
+.job.pass .f{width:100%;background:var(--green)}.job.fail .f{width:100%;background:var(--red)}.job.warn .f{width:100%;background:var(--amber)}.job.skip .f{width:100%;background:#d5dde0}
+@keyframes stripes{to{background-position:-32px 0}}
+.job .d{font:11px var(--mono);color:var(--muted);text-align:right}
+.det h3{margin:0 0 3px;font-size:16px}
+.det .cl2{font:500 10px var(--mono);color:var(--teal);letter-spacing:.6px;text-transform:uppercase}
+.det p{font-size:12.5px;line-height:1.6;color:#2c4655}
+.lesson{display:none;margin:0;padding:12px 16px;border-top:1px solid var(--line2);font-size:13px;line-height:1.55}
+.lesson.on{display:block}
+.lesson.good{background:#effaf3}.lesson.bad{background:#fff3f1}.lesson.mid{background:#fff9ea}
+@media(max-width:1100px){.scen{grid-template-columns:1fr 1fr}.lower{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<main class="page">
+  <section class="hero">
+    <div class="eyebrow">Live architecture · CI/CD with Katalon + PIT</div>
+    <h1>How a commit gets tested before it ships.</h1>
+    <p>This is the full testing pipeline behind ChargeFlow. A pull request triggers GitHub Actions; Gradle compiles the code and runs JUnit 5 with JaCoCo coverage; PIT attacks the code with mutants; the app is deployed to a Docker staging stack; the Katalon Runtime Engine drives Chrome, an Android emulator and the REST API; then a quality gate decides whether the PR can merge. Pick a scenario and press Play. Click any box to see what it does and the real command behind it.</p>
+  </section>
+
+  <div class="scen" id="scen"></div>
+
+  <section class="panel">
+    <div class="toolbar">
+      <button class="btn primary" id="play">▶ Play scenario</button>
+      <button class="btn" id="pause" disabled>❚❚ Pause</button>
+      <button class="btn" id="reset">↺ Reset</button>
+      <span class="sep"></span>
+      <div class="ctrl" id="speed"></div>
+      <span class="sep"></span>
+      <label class="toggle"><input type="checkbox" id="stepMode"> Presenter mode (pause at each stage)</label>
+      <button class="btn sm" id="next" disabled>Next stage ↵</button>
+      <span style="margin-left:auto" class="pill idle" id="pstate">IDLE</span>
+      <span class="mono small muted" id="clock">00:00</span>
+    </div>
+    <div class="say"><span class="stp" id="stp">READY</span><span class="tx" id="say">Choose a scenario above, then press Play.</span></div>
+    <div class="diagram"><svg class="arch" id="svg" viewBox="0 0 1600 1000" role="img" aria-label="CI/CD testing architecture diagram"></svg></div>
+    <div class="lesson" id="lesson"></div>
+  </section>
+
+  <section class="lower">
+    <section class="panel">
+      <div class="head"><div><h2>Pipeline jobs</h2><p>.github/workflows/ci.yml · job dependency chain</p></div><span class="tag" id="sha">–</span></div>
+      <div class="body" id="jobs"></div>
+      <div class="body" style="padding-top:0"><div class="stats" id="metrics"></div></div>
+    </section>
+    <section class="panel">
+      <div class="head"><div><h2>Live log</h2><p>Aggregated runner output</p></div></div>
+      <div class="console" id="log" style="height:390px;border-radius:0 0 var(--r) var(--r)"></div>
+    </section>
+    <section class="panel det">
+      <div class="head"><div><h2>Component details</h2><p>Click any box in the diagram</p></div></div>
+      <div class="body" id="det"></div>
+    </section>
+  </section>
+
+  <div class="footer"><span>CHARGEFLOW · LIVE ARCHITECTURE</span><span>Animated model of the pipeline; commands and configuration shown are the real Gradle, PIT, Katalon and GitHub Actions ones.</span></div>
+</main>
+
+<script src="assets/rules.js"></script>
+<script src="assets/phone.js"></script>
+<script>
+(function () {
+  CF.nav('architecture.html');
+  const $ = s => document.querySelector(s);
+  const NS = 'http://www.w3.org/2000/svg';
+
+  // ------------------------------------------------------------------ layout
+  const CLUSTERS = [
+    ['c1', 20, 20, 300, 420, '① Source & trigger'],
+    ['c2', 340, 20, 580, 420, '② Build & unit test · Gradle'],
+    ['c2p', 550, 50, 355, 375, 'PIT mutation engine', 'pit'],
+    ['c3', 940, 20, 640, 420, '③ Staging · Docker Compose'],
+    ['c4', 20, 480, 1060, 300, '④ Katalon Runtime Engine · katalonc'],
+    ['c5', 1110, 480, 470, 300, '⑤ Reports & quality gate'],
+    ['c6', 1110, 810, 470, 170, '⑥ Outcome'],
+  ];
+  const N = {
+    dev: [40, 60, 260, 56, 'Developer', 'IntelliJ · Kotlin', 'c1'],
+    git: [40, 150, 260, 56, 'GitHub · pull request #42', 'branch protection: ci required', 'c1'],
+    gha: [40, 240, 260, 56, 'GitHub Actions', 'workflow ci.yml', 'c1'],
+    runner: [40, 330, 260, 70, 'Runner', 'ubuntu-latest · JDK 17 · Docker', 'c1'],
+    compile: [360, 60, 170, 56, 'compileKotlin', 'Gradle 8 · Kotlin 1.9', 'c2'],
+    junit: [360, 150, 170, 56, 'JUnit 5 Platform', 'Jupiter engine', 'c2'],
+    jacoco: [360, 240, 170, 56, 'JaCoCo', 'line + branch coverage', 'c2'],
+    pcov: [570, 85, 315, 56, 'Coverage analysis', 'maps each test → lines it runs', 'c2p'],
+    pgen: [570, 165, 315, 56, 'Mutant generator', 'ASM bytecode · DEFAULTS mutators', 'c2p'],
+    pmin: [570, 245, 315, 56, 'Minion JVMs ×4', 'run covering tests per mutant', 'c2p'],
+    pkill: [570, 325, 315, 56, 'Kill matrix & threshold', 'mutations.xml · score ≥ 80%', 'c2p'],
+    web: [960, 60, 180, 56, 'Web UI', 'React SPA · :3000', 'c3'],
+    api: [1180, 60, 180, 56, 'Spring Boot API', 'Kotlin · :8080/api/v1', 'c3'],
+    resv: [1400, 60, 160, 56, 'ReservationService', 'slots · priority', 'c3'],
+    android: [960, 150, 180, 56, 'Android app', 'debug APK', 'c3'],
+    price: [1400, 150, 160, 56, 'PricingService', 'peak tariff ≥ 80%', 'c3'],
+    db: [1180, 240, 180, 56, 'PostgreSQL 16', 'Flyway + seed data', 'c3'],
+    testapi: [1400, 240, 160, 56, 'Test hooks API', '/api/test/* (staging)', 'c3'],
+    compose: [960, 340, 600, 50, 'docker compose up --wait', 'compose.staging.yml · 5 containers', 'c3'],
+    kre: [40, 525, 200, 56, 'katalonc CLI', 'Runtime Engine (Docker)', 'c4'],
+    tsc: [280, 525, 200, 56, 'Test Suite · Regression', '12 test cases', 'c4'],
+    prof: [280, 615, 200, 56, 'Execution profile', 'staging · baseUrl', 'c4'],
+    data: [280, 705, 200, 56, 'Data Files', 'BatteryLevels.csv', 'c4'],
+    tc: [520, 525, 200, 56, 'Test Cases (Groovy)', 'WebUI · Mobile · WS', 'c4'],
+    orep: [520, 615, 200, 56, 'Object Repository', 'XPath · CSS · attributes', 'c4'],
+    heal: [520, 705, 200, 56, 'Self-healing', 'fallback locators', 'c4'],
+    wd: [760, 525, 140, 56, 'WebDriver', 'ChromeDriver', 'c4'],
+    chrome: [930, 525, 130, 56, 'Chrome', 'headless 1920×1080', 'c4'],
+    appium: [760, 615, 140, 56, 'Appium 2', 'UiAutomator2', 'c4'],
+    emu: [930, 615, 130, 56, 'Emulator', 'Android 14', 'c4'],
+    ws: [760, 705, 300, 56, 'WS client', 'REST requests + response checks', 'c4'],
+    rjunit: [1130, 525, 200, 56, 'JUnit XML', 'build/test-results', 'c5'],
+    rpit: [1130, 615, 200, 56, 'PIT report', 'HTML + mutations.xml', 'c5'],
+    rkat: [1130, 705, 200, 56, 'Katalon report', 'HTML · JUnit XML', 'c5'],
+    gate: [1370, 580, 190, 110, 'Quality gate', 'tests · mutation · E2E', 'c5'],
+    merge: [1130, 850, 200, 56, 'Merge & release', 'auto-merge → prod', 'c6'],
+    block: [1360, 850, 200, 56, 'Block the PR', 'required check failed', 'c6'],
+    notify: [1130, 922, 430, 44, 'Notify the team', 'PR comment + Slack #chargeflow-ci', 'c6'],
+  };
+  const E = {
+    e1: ['dev', 'git', [[170, 116], [170, 150]], 'git push'],
+    e2: ['git', 'gha', [[170, 206], [170, 240]], 'webhook'],
+    e3: ['gha', 'runner', [[170, 296], [170, 330]], 'dispatch jobs'],
+    e4: ['runner', 'compile', [[300, 350], [330, 350], [330, 88], [360, 88]], 'build'],
+    e5: ['compile', 'junit', [[445, 116], [445, 150]], ''],
+    e6: ['junit', 'jacoco', [[445, 206], [445, 240]], 'exec data'],
+    e7: ['junit', 'pcov', [[530, 178], [545, 178], [545, 113], [570, 113]], ''],
+    e8: ['pcov', 'pgen', [[727, 141], [727, 165]], ''],
+    e9: ['pgen', 'pmin', [[727, 221], [727, 245]], 'mutants'],
+    e10: ['pmin', 'pkill', [[727, 301], [727, 325]], 'killed / survived'],
+    e11: ['jacoco', 'rjunit', [[445, 296], [445, 454], [1100, 454], [1100, 553], [1130, 553]], 'TEST-*.xml'],
+    e12: ['pkill', 'rpit', [[727, 381], [727, 462], [1090, 462], [1090, 643], [1130, 643]], 'mutations.xml'],
+    e13: ['runner', 'compose', [[170, 400], [170, 446], [1150, 446], [1150, 390]], 'job: deploy-staging'],
+    e14: ['compose', 'android', [[1050, 340], [1050, 206]], ''],
+    e15: ['compose', 'db', [[1270, 340], [1270, 296]], ''],
+    e16: ['compose', 'testapi', [[1480, 340], [1480, 296]], ''],
+    e17: ['web', 'api', [[1140, 88], [1180, 88]], ''],
+    e18: ['android', 'api', [[1140, 178], [1220, 178], [1220, 116]], ''],
+    e19: ['api', 'resv', [[1360, 80], [1400, 80]], ''],
+    e20: ['api', 'price', [[1360, 100], [1380, 100], [1380, 178], [1400, 178]], ''],
+    e21: ['api', 'db', [[1300, 116], [1300, 240]], 'JPA'],
+    e22: ['testapi', 'db', [[1400, 268], [1360, 268]], 'seed'],
+    e23: ['runner', 'kre', [[110, 400], [110, 525]], 'job: e2e-katalon'],
+    e24: ['kre', 'tsc', [[240, 553], [280, 553]], ''],
+    e25: ['tsc', 'tc', [[480, 553], [520, 553]], ''],
+    e26: ['prof', 'tsc', [[380, 615], [380, 581]], ''],
+    e27: ['data', 'tc', [[480, 733], [505, 733], [505, 570], [520, 570]], ''],
+    e28: ['tc', 'orep', [[620, 581], [620, 615]], 'findTestObject'],
+    e29: ['orep', 'heal', [[620, 671], [620, 705]], 'locator broken?'],
+    e30: ['tc', 'wd', [[720, 540], [760, 540]], ''],
+    e31: ['tc', 'appium', [[720, 558], [742, 558], [742, 643], [760, 643]], ''],
+    e32: ['tc', 'ws', [[720, 576], [732, 576], [732, 733], [760, 733]], ''],
+    e33: ['wd', 'chrome', [[900, 553], [930, 553]], ''],
+    e34: ['appium', 'emu', [[900, 643], [930, 643]], ''],
+    e35: ['chrome', 'web', [[995, 525], [995, 468], [947, 468], [947, 88], [960, 88]], 'HTTPS'],
+    e36: ['emu', 'android', [[1060, 643], [1072, 643], [1072, 474], [935, 474], [935, 178], [960, 178]], ''],
+    e37: ['ws', 'testapi', [[1060, 740], [1085, 740], [1085, 792], [1590, 792], [1590, 268], [1560, 268]], 'WS.sendRequest'],
+    e38: ['kre', 'rkat', [[140, 581], [140, 770], [1100, 770], [1100, 733], [1130, 733]], 'reports/'],
+    e39: ['rjunit', 'gate', [[1330, 553], [1350, 553], [1350, 610], [1370, 610]], ''],
+    e40: ['rpit', 'gate', [[1330, 643], [1370, 643]], ''],
+    e41: ['rkat', 'gate', [[1330, 733], [1350, 733], [1350, 668], [1370, 668]], ''],
+    e42: ['gate', 'merge', [[1400, 690], [1400, 830], [1230, 830], [1230, 850]], 'pass'],
+    e43: ['gate', 'block', [[1490, 690], [1490, 850]], 'fail'],
+    e44: ['merge', 'notify', [[1230, 906], [1230, 922]], ''],
+    e45: ['block', 'notify', [[1460, 906], [1460, 922]], ''],
+  };
+  const LABELPOS = { e11: [800, 451], e12: [900, 459], e13: [600, 443], e23: [114, 470], e37: [1300, 789], e38: [700, 767], e35: [960, 465], e28: [624, 600], e29: [624, 690], e9: [674, 237], e10: [616, 317], e21: [1304, 180], e22: [1366, 261], e6: [449, 232], e4: [334, 220], e1: [176, 136], e2: [176, 226], e3: [176, 316], e42: [1404, 760], e43: [1494, 760] };
+
+  const DETAIL = {
+    dev: ['Writes the feature and its tests, runs them locally, then pushes a branch and opens a pull request.', 'git checkout -b feature/battery-priority\n./gradlew test\ngit push -u origin feature/battery-priority'],
+    git: ['Branch protection on main requires the "ci / quality-gate" status check to pass before a PR can merge.', 'Settings → Branches → main\n  ✓ Require status checks: ci / quality-gate\n  ✓ Require branches to be up to date'],
+    gha: ['The workflow file defines five jobs and their dependencies. A failing job stops everything that depends on it.', 'on: pull_request\njobs:\n  build:          ./gradlew build -x test\n  mutation:       needs: build\n                  ./gradlew test jacocoTestReport pitest\n  deploy-staging: needs: mutation\n  e2e-katalon:    needs: deploy-staging\n  quality-gate:   needs: [mutation, e2e-katalon]'],
+    runner: ['A fresh virtual machine for every job. Gradle and Docker layers are cached between runs to keep the pipeline fast.', '- uses: actions/checkout@v4\n- uses: actions/setup-java@v4\n  with: { distribution: temurin, java-version: 17 }\n- uses: gradle/actions/setup-gradle@v3'],
+    compile: ['Compiles the Kotlin main and test source sets. Compilation errors fail the build job immediately.', './gradlew compileKotlin compileTestKotlin'],
+    junit: ['Runs ReservationRulesTest and the other unit tests on the JUnit Platform (Jupiter engine). Results are written as JUnit XML.', './gradlew test\n→ build/test-results/test/TEST-*.xml\n\ntasks.test { useJUnitPlatform() }'],
+    jacoco: ['Measures which lines and branches the tests executed. Note: coverage proves a line ran, not that a test would notice if it were wrong. That is PIT\'s job.', './gradlew jacocoTestReport\n→ build/reports/jacoco/test/html/index.html'],
+    pcov: ['Before mutating anything, PIT runs the suite once with instrumentation to learn which tests reach which lines. Later it only runs those covering tests for each mutant, which makes it much faster.', 'Line coverage first: PIT will only run tests\nthat execute the mutated line.'],
+    pgen: ['Generates mutants by rewriting bytecode with ASM: conditionals boundary (< ↔ <=), negate conditionals, math, and return-value mutators (true/false, "" and 0).', 'pitest {\n  mutators.set(setOf("DEFAULTS"))   // or "STRONGER"\n  targetClasses.set(setOf("com.chargeflow.*"))\n}'],
+    pmin: ['Each mutant is loaded into a separate minion JVM and the covering tests run against it. The first failing test kills the mutant. A mutant that causes an infinite loop is marked TIMED_OUT.', 'pitest {\n  threads.set(4)\n  timeoutConstant.set(4000)\n  junit5PluginVersion.set("1.2.1")\n}'],
+    pkill: ['Mutation score = killed ÷ total mutants. If it is below mutationThreshold, the pitest task fails the build, so weak tests cannot reach main.', 'pitest { mutationThreshold.set(80) }\n\n> Mutation score of 68 is below threshold of 80\n> Task :pitest FAILED'],
+    web: ['The browser front-end that drivers use to find and reserve chargers.', 'docker compose service: web (nginx, port 3000)'],
+    api: ['Kotlin Spring Boot REST API: /stations, /reservations and /tariff. It holds the business rules that the JUnit tests cover.', 'GET  /api/v1/stations/BLR-07\nPOST /api/v1/reservations'],
+    resv: ['Slot availability, low-battery priority (≤ 20% → HIGH) and the one-active-booking rule.', 'ReservationRules.priorityFor(battery)\nReservationRules.canReserve(slot, active)'],
+    android: ['Debug build of the mobile app. Katalon drives it through Appium on the emulator.', './gradlew :android:assembleDebug'],
+    price: ['Applies the peak tariff (+₹2.80/kWh) when station load is 80% or more.', 'ReservationRules.tariffFor(base, load)'],
+    db: ['PostgreSQL with Flyway migrations and a seed data set, so every test run starts from the same state.', 'flyway migrate && psql -f seed/staging.sql'],
+    testapi: ['Staging-only endpoints that let tests set up state (for example, station load = 80%). They are disabled in production.', 'PUT /api/test/station-load  {"load": 80}\nPOST /api/test/reset'],
+    compose: ['Starts the whole staging stack and waits for every container\'s health check to pass before tests begin.', 'docker compose -f compose.staging.yml up -d --wait'],
+    kre: ['The Katalon Runtime Engine runs the Katalon project headless in CI, inside the official Docker image.', 'katalonc -noSplash -runMode=console \\\n  -projectPath="$PWD/ChargeFlow.prj" \\\n  -testSuitePath="Test Suites/Regression" \\\n  -browserType="Chrome (headless)" \\\n  -executionProfile="staging" \\\n  -apiKey="$KATALON_API_KEY" -retry=0'],
+    tsc: ['A test suite groups the 12 test cases, sets retries and binds data files to test case variables.', 'Test Suites/Regression\n  TC01 … TC12 · retry: 0 · stop on failure: no'],
+    prof: ['Execution profiles hold environment-specific GlobalVariables, so the same tests can run against local, staging or UAT.', 'Profiles/staging.glbl\n  baseUrl = https://staging.chargeflow.app'],
+    data: ['Data files drive data-driven tests: one execution per CSV row.', 'battery,expected\n0,HIGH\n20,HIGH\n21,NORMAL\n101,ERROR'],
+    tc: ['Groovy scripts made of built-in keywords: WebUI for the browser, Mobile for Android, WS for the API.', "WebUI.click(findTestObject('Page_Stations/btn_reserve_C01'))\nWebUI.setText(findTestObject('Page_Booking/input_battery'), '20')\nWebUI.verifyElementText(findTestObject('Page_Confirmation/txt_priority'), 'HIGH PRIORITY')"],
+    orep: ['Every UI element is defined once, with several locators: XPath, CSS and attributes. Tests refer to the object by name, not by locator.', "Page_Booking/input_battery\n  XPath: //*[@id='cf-input_battery']\n  CSS:   [data-testid=\"input_battery\"]"],
+    heal: ['If the primary locator fails after a UI change, self-healing tries the other stored locators, keeps the test running and suggests the fix.', 'Project Settings → Self Healing → Web UI\n  order: XPath → Attributes → CSS → Image'],
+    wd: ['Translates WebUI keywords into W3C WebDriver commands for Chrome.', '--config -webui.autoUpdateDrivers=true'],
+    chrome: ['A real browser, headless, loading the staging web UI.', 'Chrome (headless) 1920×1080'],
+    appium: ['Appium 2 with the UiAutomator2 driver runs the Mobile keywords on Android.', 'appium --base-path /wd/hub'],
+    emu: ['An Android 14 emulator running the debug APK.', 'emulator -avd Pixel_6_API_34 -no-window'],
+    ws: ['Web-service keywords send REST requests and verify status codes and JSON responses. They are used to set up test data and for API tests.', "WS.sendRequestAndVerify(findTestObject('API/PUT_station_load', [('load') : 80]))"],
+    rjunit: ['Standard JUnit XML that GitHub shows as test annotations on the PR.', 'build/test-results/test/TEST-com.chargeflow.ReservationRulesTest.xml'],
+    rpit: ['A line-by-line HTML report showing every mutant and whether it was killed, plus mutations.xml for tooling.', 'build/reports/pitest/index.html'],
+    rkat: ['An HTML report with a screenshot of every failure, plus JUnit XML for CI. Results can also be uploaded to Katalon TestOps.', 'Reports/<timestamp>/Regression/JUnit_Report.xml'],
+    gate: ['The final required check. It passes only if all unit tests pass, the mutation score is at least 80% and every Katalon E2E test passes.', 'quality-gate:\n  needs: [mutation, e2e-katalon]\n  if: always()\n  run: ./scripts/check-gate.sh'],
+    merge: ['Branch protection is satisfied, the PR auto-merges and the release pipeline deploys to production.', 'gh pr merge --auto --squash'],
+    block: ['The required check is red, so GitHub will not allow the merge until a new commit fixes the problem.', '✖ ci / quality-gate — Required'],
+    notify: ['A bot posts a summary on the PR (failed tests, surviving mutants, healed locators) and alerts Slack.', 'actions: marocchino/sticky-pull-request-comment\n         slackapi/slack-github-action'],
+  };
+
+  // ------------------------------------------------------------------ draw
+  const svg = $('#svg');
+  const el = (tag, attrs, parent) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); (parent || svg).appendChild(e); return e; };
+  const defs = el('defs', {});
+  defs.innerHTML = `<filter id="glow" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#9db3b9"/></marker>`;
+  const gCl = el('g', {}), gEd = el('g', {}), gNd = el('g', {}), gPk = el('g', {}), gLg = el('g', {});
+  for (const [id, x, y, w, h, label, cls] of CLUSTERS) {
+    const g = el('g', { class: 'cl ' + (cls || '') }, gCl);
+    el('rect', { x, y, width: w, height: h, rx: 16 }, g);
+    const t = el('text', { x: x + 16, y: y + 22 }, g); t.textContent = label;
+  }
+  const edgeEls = {};
+  for (const id in E) {
+    const [a, b, pts, label] = E[id];
+    const g = el('g', { class: 'ed', id: 'ed-' + id }, gEd);
+    const d = 'M' + pts.map(p => p.join(' ')).join(' L');
+    const p = el('path', { d, 'marker-end': 'url(#arr)', id: 'p-' + id }, g);
+    if (label) {
+      const [lx, ly] = LABELPOS[id] || [(pts[0][0] + pts[1][0]) / 2 + 4, (pts[0][1] + pts[1][1]) / 2 - 4];
+      const tw = label.length * 5.9 + 8;
+      el('rect', { class: 'lb', x: lx - 4, y: ly - 10, width: tw, height: 13, rx: 3 }, g);
+      const t = el('text', { x: lx, y: ly }, g); t.textContent = label;
+    }
+    edgeEls[id] = { g, p };
+  }
+  const nodeEls = {};
+  for (const id in N) {
+    const [x, y, w, h, title, sub, cl] = N[id];
+    const g = el('g', { class: 'nd' + (cl === 'c2p' ? ' pitn' : ''), id: 'nd-' + id, tabindex: 0 }, gNd);
+    el('rect', { class: 'b', x, y, width: w, height: h, rx: 11 }, g);
+    const cy = y + h / 2;
+    const t = el('text', { class: 't', x: x + 13, y: cy - 3 }, g); t.textContent = title;
+    const s = el('text', { class: 's', x: x + 13, y: cy + 13 }, g); s.textContent = sub;
+    const bg = el('g', { class: 'bdg', style: 'display:none' }, g);
+    const br = el('rect', { x: x + w - 10, y: y - 9, width: 10, height: 17, rx: 8 }, bg);
+    const bt = el('text', { x: x + w - 15, y: y + 3, 'text-anchor': 'end' }, bg);
+    g.addEventListener('click', () => showDetail(id));
+    nodeEls[id] = { g, bg, br, bt, x, y, w };
+  }
+  // legend
+  const lg = [['#35d4ce', 'running'], ['#1f9d62', 'passed'], ['#e0564b', 'failed'], ['#d98e12', 'warning / healed']];
+  el('rect', { x: 20, y: 810, width: 1060, height: 170, rx: 16, fill: '#fff', stroke: '#d5e4e6' }, gLg);
+  const lt = el('text', { x: 36, y: 834, style: 'font:500 11px DM Mono,monospace;letter-spacing:1px;fill:#4f7381' }, gLg); lt.textContent = 'LEGEND';
+  lg.forEach(([c, l], i) => {
+    el('rect', { x: 40 + i * 190, y: 852, width: 26, height: 16, rx: 5, fill: '#fff', stroke: c, 'stroke-width': 2.4 }, gLg);
+    const t = el('text', { x: 74 + i * 190, y: 865, style: 'font-size:12px;fill:#2c4655' }, gLg); t.textContent = l;
+  });
+  el('circle', { cx: 806, cy: 860, r: 6, fill: '#35d4ce', class: 'pk' }, gLg);
+  const t2 = el('text', { x: 820, y: 865, style: 'font-size:12px;fill:#2c4655' }, gLg); t2.textContent = 'data / request moving';
+  const ln = el('text', { x: 40, y: 905, style: 'font-size:12.5px;fill:#2c4655' }, gLg);
+  ln.innerHTML = '<tspan x="40" dy="0">Jobs run in order: build → mutation (JUnit + JaCoCo + PIT) → deploy-staging → e2e-katalon → quality-gate.</tspan><tspan x="40" dy="20">PIT checks the strength of the unit tests; Katalon checks the running system end to end. The gate needs both.</tspan><tspan x="40" dy="20" style="fill:#6b818a">Tip: click any component to read what it does and see its real command or config.</tspan>';
+
+  // ------------------------------------------------------------------ state helpers
+  function setNode(id, st, badge) {
+    const n = nodeEls[id];
+    n.g.classList.remove('active', 'pass', 'fail', 'warn', 'skip');
+    if (st) n.g.classList.add(st);
+    if (badge !== undefined) {
+      if (badge === null || badge === '') n.bg.style.display = 'none';
+      else {
+        n.bg.style.display = '';
+        n.bt.textContent = badge;
+        const w = badge.length * 6.1 + 12;
+        n.br.setAttribute('width', w); n.br.setAttribute('x', n.x + n.w - 8 - w);
+        n.bt.setAttribute('x', n.x + n.w - 14);
+      }
+    }
+  }
+  function setEdge(id, st) { const e = edgeEls[id]; e.g.classList.remove('active', 'done', 'bad'); if (st) e.g.classList.add(st); }
+  let token = 0;
+  class Abort extends Error {}
+  const check = t => { if (t !== token) throw new Abort(); };
+  const COL = { ok: '#35d4ce', pass: '#1f9d62', bad: '#e0564b', warn: '#d98e12', lime: '#b9e43a' };
+  function flow(id, color, opts) {
+    opts = opts || {};
+    const t = token;
+    const { p } = edgeEls[id];
+    const len = p.getTotalLength();
+    const dur = Math.min(1900, Math.max(550, len * 2.4)) * (opts.fast ? 0.45 : 1);
+    setEdge(id, 'active');
+    const c = el('circle', { r: opts.r || 6, fill: COL[color || 'ok'], class: 'pk' }, gPk);
+    return new Promise((res, rej) => {
+      let done = 0, last = performance.now();
+      (function fr(now) {
+        if (t !== token) { c.remove(); return rej(new Abort()); }
+        if (!CF.paused) done += (now - last) * CF.speed;
+        last = now;
+        const k = Math.min(1, done / dur);
+        const pt = p.getPointAtLength(k * len);
+        c.setAttribute('cx', pt.x); c.setAttribute('cy', pt.y);
+        if (k < 1) requestAnimationFrame(fr);
+        else { c.remove(); setEdge(id, color === 'bad' ? 'bad' : 'done'); res(); }
+      })(last);
+    });
+  }
+  const par = (...ps) => Promise.all(ps);
+  async function wait(ms) { const t = token; await CF.sleep(ms); check(t); }
+  let stage = 0, totalStages = 0;
+  async function say(text) {
+    const t = token;
+    stage++;
+    await CF.gate(); check(t);
+    $('#stp').textContent = `STAGE ${stage}/${totalStages}`;
+    $('#say').innerHTML = text;
+    log('hl', '» ' + $('#say').textContent);
+  }
+  function log(cls, msg) {
+    const d = document.createElement('div'); d.className = 'ln';
+    d.innerHTML = `<span class="t">${clockText()}</span> <span class="${cls}">${CF.esc(msg)}</span>`;
+    $('#log').appendChild(d); $('#log').scrollTop = 1e9;
+  }
+  // jobs
+  const JOBS = [['build', 'build'], ['mutation', 'mutation'], ['deploy', 'deploy-staging'], ['e2e', 'e2e-katalon'], ['gate', 'quality-gate']];
+  function renderJobs() { $('#jobs').innerHTML = JOBS.map(([id, n]) => `<div class="job" id="job-${id}"><b>${n}</b><div class="tr"><div class="f"></div></div><span class="d" id="jd-${id}">queued</span></div>`).join(''); }
+  function job(id, st, d) { const j = $('#job-' + id); j.className = 'job ' + st; $('#jd-' + id).textContent = d || { run: 'running…', skip: 'skipped' }[st] || ''; }
+  const METRICS = [['commit', 'Commit'], ['junit', 'JUnit tests'], ['cov', 'Line coverage'], ['mut', 'Mutation score'], ['kat', 'Katalon E2E'], ['res', 'Pipeline']];
+  function renderMetrics() { $('#metrics').innerHTML = METRICS.map(([k, l]) => `<div class="stat"><b id="m-${k}">–</b><span>${l}</span></div>`).join(''); }
+  function metric(k, v, color) { const e = $('#m-' + k); e.textContent = v; e.style.color = color || ''; }
+  async function count(k, from, to, suffix, ms, color) {
+    const t = token, steps = Math.min(30, Math.abs(to - from) || 1);
+    for (let i = 1; i <= steps; i++) { await CF.sleep(ms / steps); check(t); metric(k, Math.round(from + (to - from) * i / steps) + (suffix || ''), color); }
+  }
+  async function countNode(id, to, total, fmt, ms) {
+    const t = token, steps = Math.min(total, 35);
+    for (let i = 1; i <= steps; i++) { await CF.sleep(ms / steps); check(t); setNode(id, 'active', fmt(Math.round(to * i / steps), Math.round(total * i / steps))); }
+  }
+
+  // ------------------------------------------------------------------ clock
+  let t0 = 0, clockOn = false, simMs = 0, lastTick = 0;
+  function clockText() { const s = Math.floor(simMs / 1000); return String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0'); }
+  (function tick(now) { if (clockOn && !CF.paused) simMs += (now - lastTick) * CF.speed; lastTick = now; $('#clock').textContent = clockText(); requestAnimationFrame(tick); })(performance.now());
+
+  // ------------------------------------------------------------------ common stages
+  async function trigger(sha, msg) {
+    metric('commit', sha);
+    $('#sha').textContent = sha;
+    await say(`A developer pushes <b>${sha}</b> “${msg}” to pull request #42.`);
+    setNode('dev', 'active'); log('i', `$ git push origin feature/${sha}`);
+    await flow('e1'); setNode('dev', 'pass'); setNode('git', 'active', 'PR #42');
+    await flow('e2'); setNode('git', 'pass'); setNode('gha', 'active', 'ci.yml');
+    log('i', 'GitHub Actions: workflow "ci" triggered by pull_request (synchronize)');
+    await flow('e3'); setNode('gha', 'pass'); setNode('runner', 'active', 'ubuntu-latest');
+    await wait(500);
+  }
+  async function build() {
+    await say('<b>Job 1 · build.</b> The runner checks out the code and Gradle compiles the Kotlin sources.');
+    job('build', 'run');
+    await flow('e4'); setNode('compile', 'active');
+    log('t', '> Task :compileKotlin'); log('t', '> Task :compileTestKotlin');
+    await wait(900); setNode('compile', 'pass', '0 errors'); job('build', 'pass', '0m 48s');
+  }
+  async function unit(nTests, cov) {
+    await say(`<b>Job 2 · mutation.</b> JUnit 5 runs ${nTests} unit tests and JaCoCo records which lines they executed.`);
+    job('mutation', 'run');
+    await flow('e5'); setNode('junit', 'active');
+    log('t', '> Task :test');
+    await par(countNode('junit', nTests, nTests, (a) => `${a}/${nTests}`, 1600), count('junit', 0, nTests, '', 1600));
+    setNode('junit', 'pass', `${nTests} passed`); metric('junit', `${nTests}/${nTests}`, '#1f9d62');
+    log('ok', `ReservationRulesTest: ${nTests} tests completed, 0 failed`);
+    await par(flow('e6'), flow('e7'));
+    setNode('jacoco', 'pass', cov + '% lines'); metric('cov', cov + '%');
+    log('t', `> Task :jacocoTestReport  (line coverage ${cov}%)`);
+  }
+  async function pit(total, killed, threshold, survivors) {
+    await say('<b>PIT, step 1:</b> coverage analysis maps every test to the lines it runs, so each mutant only runs the tests that reach it.');
+    setNode('pcov', 'active'); log('t', '> Task :pitest');
+    await wait(1100); setNode('pcov', 'pass', 'mapped');
+    await flow('e8');
+    await say(`<b>PIT, step 2:</b> the mutant generator rewrites the bytecode of ReservationRules and creates <b>${total} mutants</b> (< becomes <=, + becomes −, return true becomes false…).`);
+    setNode('pgen', 'active');
+    await countNode('pgen', total, total, (a) => `${a} mutants`, 1500);
+    setNode('pgen', 'pass', `${total} mutants`);
+    await flow('e9');
+    await say('<b>PIT, step 3:</b> four minion JVMs load each mutant and run the covering JUnit tests. A failing test <b>kills</b> the mutant; if all tests pass, it <b>survived</b>.');
+    setNode('pmin', 'active');
+    await countNode('pmin', killed, total, (k, n) => `${n}/${total} · ${k} killed`, 3200);
+    setNode('pmin', 'pass', `${killed} killed · ${total - killed} survived`);
+    await flow('e10');
+    const pct = Math.round(killed / total * 100), ok = pct >= threshold;
+    setNode('pkill', ok ? 'pass' : 'fail', `${pct}% ${ok ? '≥' : '<'} ${threshold}%`);
+    metric('mut', pct + '%', ok ? '#1f9d62' : '#e0564b');
+    log(ok ? 'ok' : 'er', `>> Generated ${total} mutations Killed ${killed} (${pct}%)`);
+    if (survivors) survivors.forEach(s => log('wn', '   SURVIVED  ' + s));
+    if (!ok) log('er', `Mutation score of ${pct} is below threshold of ${threshold}  →  Task :pitest FAILED`);
+    await par(flow('e11', 'pass', { fast: true }), flow('e12', ok ? 'pass' : 'bad', { fast: true }));
+    setNode('rjunit', 'pass', 'XML'); setNode('rpit', ok ? 'pass' : 'fail', pct + '%');
+    job('mutation', ok ? 'pass' : 'fail', '2m 31s');
+    return ok;
+  }
+  async function deploy() {
+    await say('<b>Job 3 · deploy-staging.</b> Docker Compose starts the web UI, API, PostgreSQL and the test hooks, and waits for their health checks.');
+    job('deploy', 'run');
+    await flow('e13'); setNode('compose', 'active', 'starting');
+    log('t', '$ docker compose -f compose.staging.yml up -d --wait');
+    await par(flow('e14'), flow('e15'), flow('e16'));
+    ['android', 'db', 'testapi'].forEach(n => setNode(n, 'pass', 'healthy'));
+    await flow('e21', 'ok', { fast: true });
+    ['web', 'api', 'resv', 'price'].forEach(n => setNode(n, 'pass', 'healthy'));
+    setNode('compose', 'pass', '5/5 healthy');
+    log('ok', 'Container web, api, db, testapi, android-build ... Healthy');
+    job('deploy', 'pass', '1m 05s');
+  }
+  async function e2eStart() {
+    await say('<b>Job 4 · e2e-katalon.</b> The Katalon Runtime Engine starts the Regression test suite with the staging profile and the battery data file.');
+    job('e2e', 'run');
+    await flow('e23'); setNode('kre', 'active', 'katalonc');
+    log('t', '$ katalonc -noSplash -runMode=console -testSuitePath="Test Suites/Regression" -executionProfile=staging -browserType="Chrome (headless)"');
+    await flow('e24'); setNode('tsc', 'active', '0/12');
+    await par(flow('e26', 'ok', { fast: true }), flow('e27', 'ok', { fast: true }));
+    setNode('prof', 'pass', 'staging'); setNode('data', 'pass', '7 rows');
+    await flow('e25'); setNode('tc', 'active');
+  }
+  // one UI test through the browser
+  async function uiTest(name, opts) {
+    opts = opts || {};
+    const c = opts.fail ? 'bad' : 'ok';
+    await flow('e28', 'ok', { fast: true }); setNode('orep', 'active');
+    if (opts.heal) { await flow('e29', 'warn', { fast: true }); setNode('heal', 'warn', 'healed'); log('wn', `   Self-healing: XPath broken → found ${opts.heal} by CSS`); }
+    await flow('e30', 'ok', { fast: true }); setNode('wd', 'active');
+    await flow('e33', 'ok', { fast: true }); setNode('chrome', 'active');
+    await flow('e35', c); setNode('web', opts.fail ? 'fail' : 'active');
+    if (!opts.fail) { await flow('e17', 'ok', { fast: true }); await flow('e19', 'ok', { fast: true }); setNode('web', 'pass'); }
+    setNode('orep', 'pass'); setNode('wd', 'pass'); setNode('chrome', opts.fail ? 'fail' : 'pass');
+  }
+  async function mobileTest() {
+    await flow('e31', 'ok', { fast: true }); setNode('appium', 'active');
+    await flow('e34', 'ok', { fast: true }); setNode('emu', 'active');
+    await flow('e36'); setNode('android', 'active');
+    await flow('e18', 'ok', { fast: true });
+    setNode('appium', 'pass'); setNode('emu', 'pass'); setNode('android', 'pass');
+  }
+  async function apiTest() {
+    await flow('e32', 'ok', { fast: true }); setNode('ws', 'active');
+    await flow('e37'); setNode('testapi', 'active');
+    await flow('e22', 'ok', { fast: true }); setNode('testapi', 'pass'); setNode('ws', 'pass', '200 OK');
+  }
+  async function runSuite(results) {
+    let passed = 0;
+    for (let i = 0; i < results.length; i++) {
+      const [id, kind, st, extra] = results[i];
+      setNode('tsc', 'active', `${i + 1}/12`);
+      log('t', `START Test Cases/${id}`);
+      if (kind === 'api') { await apiTest(); await uiTest(id, { heal: st === 'heal' ? extra : null, fail: st === 'fail' }); }
+      else if (kind === 'mobile') await mobileTest();
+      else await uiTest(id, { heal: st === 'heal' ? extra : null, fail: st === 'fail' });
+      if (st === 'fail') { log('er', `END ${id} — FAILED: ${extra}`); setNode('tc', 'fail'); }
+      else { passed++; log(st === 'heal' ? 'wn' : 'ok', `END ${id} — PASSED${st === 'heal' ? ' (self-healed)' : ''}`); }
+      metric('kat', `${passed}/${i + 1}`, passed === i + 1 ? '#1f9d62' : '#e0564b');
+    }
+    return passed;
+  }
+  async function gate(ok, why, warn) {
+    await say(`<b>Job 5 · quality-gate.</b> The reports from JUnit, PIT and Katalon are combined. ${why}`);
+    job('gate', 'run');
+    await par(flow('e39', 'pass', { fast: true }), flow('e40', ok || warn ? 'pass' : 'bad', { fast: true }), flow('e41', ok ? (warn ? 'warn' : 'pass') : 'bad', { fast: true }));
+    setNode('gate', 'active'); await wait(900);
+    setNode('gate', ok ? (warn ? 'warn' : 'pass') : 'fail', ok ? 'PASSED' : 'FAILED');
+    job('gate', ok ? (warn ? 'warn' : 'pass') : 'fail', '0m 06s');
+    if (ok) { await flow('e42', 'pass'); setNode('merge', 'pass', 'merged'); await flow('e44', 'pass', { fast: true }); }
+    else { await flow('e43', 'bad'); setNode('block', 'fail', 'blocked'); await flow('e45', 'bad', { fast: true }); }
+    metric('res', ok ? (warn ? 'PASSED*' : 'PASSED') : 'FAILED', ok ? (warn ? '#d98e12' : '#1f9d62') : '#e0564b');
+  }
+
+  const SUITE = (over) => {
+    const base = [['TC01', 'ui'], ['TC02', 'ui'], ['TC03', 'ui'], ['TC04', 'ui'], ['TC05', 'api'], ['TC06', 'api'], ['TC07', 'ui'], ['TC08', 'mobile'], ['TC09', 'ui'], ['TC10', 'ui'], ['TC11', 'ui'], ['TC12', 'mobile']];
+    return base.map(([id, k]) => [id, k, ...(over[id] || ['pass'])]);
+  };
+
+  // ------------------------------------------------------------------ scenarios
+  const SCEN = [
+    {
+      id: 'green', k: 'Scenario 1 · happy path', color: '#1f9d62', title: 'Green build, merged',
+      desc: 'Good code, strong tests: PIT kills every mutant, all 12 Katalon tests pass, and the PR merges.', stages: 11,
+      lesson: ['good', '<b>Result: merged.</b> All 23 unit tests passed, PIT killed 35/35 mutants (100%), and all 12 Katalon E2E tests passed on staging. Each layer checked something different, and all of them agreed.'],
+      async run() {
+        await trigger('a41c9e2', 'Add boundary tests for battery and duration');
+        await build();
+        await unit(23, 100);
+        await pit(35, 35, 80);
+        await deploy();
+        await e2eStart();
+        await say('Katalon executes the 12 test cases: <b>WebUI</b> through ChromeDriver, <b>Mobile</b> through Appium, and <b>WS</b> API calls to set up state, such as station load = 80%.');
+        const p = await runSuite(SUITE({}));
+        setNode('tc', 'pass', `${p}/12`); setNode('tsc', 'pass', '12/12'); setNode('kre', 'pass');
+        await flow('e38', 'pass'); setNode('rkat', 'pass', '12/12');
+        job('e2e', 'pass', '4m 12s');
+        await gate(true, 'Unit tests ✓, mutation score 100% ≥ 80% ✓, E2E 12/12 ✓.');
+        await say('<b>Merged.</b> The PR is green, so it auto-merges and the team is notified.');
+        setNode('notify', 'pass', 'Slack ✓');
+      },
+    },
+    {
+      id: 'e2e', k: 'Scenario 2 · bug reaches staging', color: '#e0564b', title: 'Boundary bug caught by Katalon',
+      desc: 'A refactor changes ≤ 20 to < 20. Unit tests at 19% and 21% still pass, but the Katalon test at exactly 20% fails.', stages: 11,
+      lesson: ['bad', '<b>Result: blocked by E2E.</b> The refactor changed <span class="mono">battery &lt;= 20</span> to <span class="mono">battery &lt; 20</span>. Line coverage was 100% and the unit tests (19% and 21%) still passed. Katalon\'s boundary test TC03 entered exactly 20% and expected HIGH PRIORITY, got NORMAL, and blocked the PR. That is why boundary values need a test at every layer.'],
+      async run() {
+        await trigger('7d03b11', 'Refactor priority calculation');
+        await build();
+        await unit(16, 100);
+        await pit(35, 28, 80, ['priorityFor: changed < to <= (no test at exactly 20)', 'validateBattery: changed < to <=', 'validateDuration: changed > to >=']);
+        await deploy();
+        await e2eStart();
+        await say('Katalon runs the suite. Watch <b>TC03 · battery at exactly 20%</b>: the UI shows NORMAL PRIORITY instead of HIGH.');
+        const p = await runSuite(SUITE({ TC03: ['fail', "verifyElementText: actual 'NORMAL PRIORITY', expected 'HIGH PRIORITY'"] }));
+        setNode('tsc', 'fail', `${p}/12`); setNode('kre', 'fail'); setNode('tc', 'fail', `${p}/12`);
+        await flow('e38', 'bad'); setNode('rkat', 'fail', `${p}/12 · 1 failed`);
+        job('e2e', 'fail', '4m 20s');
+        await gate(false, 'Unit tests ✓, mutation 80% ✓, but E2E 11/12 ✗ (TC03).');
+        await say('<b>Blocked.</b> A PR comment shows the failing step and a screenshot of the wrong priority badge.');
+        setNode('notify', 'fail', 'TC03 failed');
+        log('er', 'PR comment: ✖ TC03 Battery priority at exactly 20% — expected HIGH PRIORITY, got NORMAL PRIORITY (screenshot attached)');
+      },
+    },
+    {
+      id: 'pit', k: 'Scenario 3 · weak tests', color: '#d98e12', title: 'PIT blocks a weak test suite',
+      desc: 'New duration rules ship with tests that run every line (100% coverage) but miss the boundaries. PIT fails the build.', stages: 9,
+      lesson: ['mid', '<b>Result: blocked by PIT, before deployment.</b> JaCoCo reported 100% line coverage, yet 11 of 35 mutants survived (69% &lt; 80%). The tests ran every line but never checked 15 or 120 minutes, so a broken boundary would have passed unnoticed. Fix: add tests at the boundaries, as shown in the PIT Lab.'],
+      async run() {
+        await trigger('c9e5f70', 'Add session duration limits');
+        await build();
+        await unit(14, 100);
+        const ok = await pit(35, 24, 80, ['validateDuration: changed < to <= (no test at 15)', 'validateDuration: changed > to >= (no test at 120)', 'validateBattery: changed < to <= (no test at 0)', 'validateBattery: changed > to >= (no test at 100)', 'priorityFor: changed <= to < (no test at 20)', '… 6 more']);
+        await say('<b>The mutation job failed</b>, so the jobs that depend on it (deploy-staging and e2e-katalon) are skipped. Nothing broken reaches staging.');
+        job('deploy', 'skip'); job('e2e', 'skip');
+        ['compose', 'web', 'api', 'resv', 'android', 'price', 'db', 'testapi', 'kre', 'tsc', 'prof', 'data', 'tc', 'orep', 'heal', 'wd', 'chrome', 'appium', 'emu', 'ws'].forEach(n => setNode(n, 'skip'));
+        metric('kat', 'skipped', '#6b7390');
+        setNode('rkat', 'skip');
+        await gate(ok, 'Mutation score 69% is below the 80% threshold ✗.');
+        await say('<b>Blocked.</b> The PR comment lists the surviving mutants, which tells the developer exactly which tests are missing.');
+        setNode('notify', 'fail', '11 survivors');
+      },
+    },
+    {
+      id: 'heal', k: 'Scenario 4 · UI redesign', color: '#3a7bd5', title: 'Self-healing keeps E2E green',
+      desc: 'The booking screen is redesigned and element IDs change. Katalon\'s self-healing finds the elements by CSS and reports the fix.', stages: 11,
+      lesson: ['mid', '<b>Result: merged with warnings.</b> The redesign renamed element IDs, so 6 recorded XPath locators broke. Self-healing found the same elements through their CSS <span class="mono">data-testid</span> locators, the tests passed, and the report asks the team to approve the new locators in the Object Repository.'],
+      async run() {
+        await trigger('e72b4d8', 'Redesign booking screen');
+        await build();
+        await unit(23, 100);
+        await pit(35, 35, 80);
+        await deploy();
+        await e2eStart();
+        await say('The new UI has new element IDs. When a recorded XPath fails, the <b>self-healing</b> module tries the object\'s other locators.');
+        const over = {}; ['TC01', 'TC03', 'TC05', 'TC07', 'TC09', 'TC10'].forEach((t, i) => over[t] = ['heal', ['btn_reserve_C01', 'input_battery', 'btn_confirm', 'txt_priority', 'sel_duration', 'txt_toast'][i]]);
+        const p = await runSuite(SUITE(over));
+        setNode('tc', 'pass', `${p}/12`); setNode('tsc', 'pass', '12/12'); setNode('kre', 'warn', '6 healed');
+        await flow('e38', 'warn'); setNode('rkat', 'warn', '12/12 · 6 healed');
+        job('e2e', 'warn', '4m 31s');
+        await gate(true, 'Everything passed. Healed locators are reported as warnings.', true);
+        await say('<b>Merged with a warning.</b> The team gets a list of healed locators to approve in the Object Repository.');
+        setNode('notify', 'warn', 'review locators');
+      },
+    },
+  ];
+  let scen = SCEN[0];
+  $('#scen').innerHTML = SCEN.map(s => `<button class="sc" data-s="${s.id}"><span class="k" style="color:${s.color}">${s.k}</span><b>${s.title}</b><p>${s.desc}</p></button>`).join('');
+  $('#scen').querySelectorAll('.sc').forEach(b => b.onclick = () => { scen = SCEN.find(s => s.id === b.dataset.s); markScen(); reset(); });
+  function markScen() { $('#scen').querySelectorAll('.sc').forEach(b => b.classList.toggle('on', b.dataset.s === scen.id)); }
+
+  function reset() {
+    token++;
+    CF.paused = false; CF.nextStep();
+    clockOn = false; simMs = 0;
+    gPk.innerHTML = '';
+    Object.keys(N).forEach(n => setNode(n, null, ''));
+    Object.keys(E).forEach(e => setEdge(e, null));
+    renderJobs(); renderMetrics();
+    $('#log').innerHTML = '';
+    $('#stp').textContent = 'READY';
+    $('#say').innerHTML = `<b>${scen.title}.</b> ${scen.desc} Press Play.`;
+    $('#lesson').className = 'lesson'; $('#lesson').innerHTML = '';
+    $('#pstate').className = 'pill idle'; $('#pstate').textContent = 'IDLE';
+    $('#play').disabled = false; $('#pause').disabled = true; $('#pause').textContent = '❚❚ Pause';
+    stage = 0;
+  }
+  async function play() {
+    reset();
+    const my = token;
+    $('#play').disabled = true; $('#pause').disabled = false;
+    $('#pstate').className = 'pill run'; $('#pstate').textContent = 'RUNNING';
+    clockOn = true; totalStages = scen.stages;
+    try {
+      await scen.run();
+      if (my !== token) return;
+      clockOn = false;
+      $('#stp').textContent = 'DONE';
+      $('#lesson').className = 'lesson on ' + scen.lesson[0]; $('#lesson').innerHTML = scen.lesson[1];
+      $('#pstate').className = 'pill ' + { good: 'pass', bad: 'fail', mid: 'warn' }[scen.lesson[0]];
+      $('#pstate').textContent = 'FINISHED';
+      $('#play').disabled = false; $('#play').textContent = '▶ Play again'; $('#pause').disabled = true;
+    } catch (e) { if (!(e instanceof Abort)) throw e; }
+  }
+  $('#play').onclick = play;
+  $('#reset').onclick = reset;
+  $('#pause').onclick = () => { CF.paused = !CF.paused; $('#pause').textContent = CF.paused ? '▶ Resume' : '❚❚ Pause'; $('#pstate').textContent = CF.paused ? 'PAUSED' : 'RUNNING'; };
+  CF.mountSpeed($('#speed'));
+  $('#stepMode').onchange = e => { CF.stepMode = e.target.checked; $('#next').disabled = !e.target.checked; if (!e.target.checked) CF.nextStep(); };
+  $('#next').onclick = () => CF.nextStep();
+  document.addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && CF.stepMode && e.target.tagName !== 'BUTTON') { e.preventDefault(); CF.nextStep(); } });
+  document.addEventListener('cf-gate', e => { $('#next').classList.toggle('primary', e.detail); if (e.detail) $('#stp').textContent += ' · PRESS NEXT'; });
+
+  // ------------------------------------------------------------------ details
+  let selNode = null;
+  function showDetail(id) {
+    if (selNode) nodeEls[selNode].g.classList.remove('sel');
+    Object.keys(E).forEach(e => edgeEls[e].g.classList.remove('hl'));
+    selNode = id; nodeEls[id].g.classList.add('sel');
+    Object.entries(E).forEach(([eid, [a, b]]) => { if (a === id || b === id) edgeEls[eid].g.classList.add('hl'); });
+    const [, , , , title, sub, cl] = N[id];
+    const cluster = CLUSTERS.find(c => c[0] === cl)[5];
+    const [txt, cmd] = DETAIL[id];
+    const ins = Object.values(E).filter(e => e[1] === id).map(e => N[e[0]][4]);
+    const outs = Object.values(E).filter(e => e[0] === id).map(e => N[e[1]][4]);
+    $('#det').innerHTML = `<div class="cl2">${cluster}</div><h3>${title}</h3><div class="small muted mono">${sub}</div><p>${txt}</p>
+      <div class="code" style="font-size:11px;white-space:pre-wrap">${CF.esc(cmd)}</div>
+      <div class="small" style="margin-top:12px;line-height:1.7">${ins.length ? `<b>Receives from:</b> ${ins.join(', ')}<br>` : ''}${outs.length ? `<b>Sends to:</b> ${outs.join(', ')}` : ''}</div>`;
+  }
+  showDetail('pmin');
+  markScen(); reset();
+  window.__arch = { play, reset, select: id => { scen = SCEN.find(s => s.id === id); markScen(); reset(); }, done: () => $('#stp').textContent === 'DONE' };
+})();
+</script>
+</body>
+</html>
